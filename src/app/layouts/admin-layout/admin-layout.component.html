@@ -1,0 +1,9 @@
+<div class="d-flex min-vh-100">
+  <app-sidebar role="SYSTEM_ADMIN" [items]="navItems"></app-sidebar>
+  <div class="flex-grow-1 d-flex flex-column">
+    <app-header portalTitle="AML System Admin Portal"></app-header>
+    <main class="flex-grow-1 p-4 bg-light">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

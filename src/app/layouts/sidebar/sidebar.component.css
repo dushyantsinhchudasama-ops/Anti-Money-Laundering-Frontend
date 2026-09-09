@@ -1,0 +1,28 @@
+:host {
+  display: block;
+}
+
+.sidebar {
+  width: var(--aml-sidebar-width);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--aml-primary) !important;
+}
+
+.nav-link {
+  color: #cfd8dc !important;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  padding: 8px 12px;
+}
+
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #ffffff !important;
+}
+
+.nav-link.active {
+  background-color: var(--aml-secondary) !important;
+  color: #ffffff !important;
+}

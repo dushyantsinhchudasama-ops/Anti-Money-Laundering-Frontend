@@ -1,1 +1,72 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  --aml-primary: #1F3A5F;
+  --aml-primary-hover: #172B47;
+  --aml-secondary: #2F6690;
+  --aml-background: #F5F7FA;
+  --aml-text: #212529;
+  --aml-card-border: #E0E6ED;
+  --aml-sidebar-width: 240px;
+}
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--aml-background);
+  color: var(--aml-text);
+  margin: 0;
+  padding: 0;
+}
+
+/* Primary Button Styling */
+.btn-aml-primary {
+  background-color: var(--aml-primary);
+  color: #ffffff;
+  border: 1px solid var(--aml-primary);
+}
+
+.btn-aml-primary:hover {
+  background-color: var(--aml-primary-hover);
+  color: #ffffff;
+  border-color: var(--aml-primary-hover);
+}
+
+.btn-aml-secondary {
+  background-color: var(--aml-secondary);
+  color: #ffffff;
+  border: 1px solid var(--aml-secondary);
+}
+
+.btn-aml-secondary:hover {
+  background-color: #245275;
+  color: #ffffff;
+}
+
+/* Card Styling */
+.aml-card {
+  border: 1px solid var(--aml-card-border);
+  border-radius: 4px;
+  background-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Page Header Utility */
+.aml-page-header {
+  padding-bottom: 12px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--aml-card-border);
+}
+
+/* Risk/Severity Badges */
+.badge-risk-high {
+  background-color: #dc3545;
+  color: #ffffff;
+}
+
+.badge-risk-medium {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.badge-risk-low {
+  background-color: #198754;
+  color: #ffffff;
+}

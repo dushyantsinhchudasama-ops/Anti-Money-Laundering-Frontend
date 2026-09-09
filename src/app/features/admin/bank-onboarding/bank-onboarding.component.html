@@ -1,0 +1,117 @@
+<div class="container-fluid p-0">
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center aml-page-header">
+    <div>
+      <h3 class="fw-bold text-dark m-0">Bank Onboarding</h3>
+      <p class="text-muted small m-0">Onboard institutional bank tenants and provision database schemas</p>
+    </div>
+    <button class="btn btn-aml-primary btn-sm d-flex align-items-center gap-1" (click)="toggleOnboardForm()">
+      <i class="bi" [ngClass]="showOnboardForm ? 'bi-x-lg' : 'bi-building-add'"></i>
+      {{ showOnboardForm ? 'Cancel' : 'Onboard New Bank' }}
+    </button>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show small" role="alert">
+    <i class="bi bi-check-circle-fill me-1"></i> {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show small" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ errorMessage }}
+  </div>
+
+  <!-- Onboard Bank Form Card -->
+  <div *ngIf="showOnboardForm" class="card aml-card mb-4 shadow-sm">
+    <div class="card-header bg-white border-bottom py-2">
+      <h6 class="fw-bold text-primary m-0">
+        <i class="bi bi-building me-2"></i>Onboard New Institutional Bank Tenant
+      </h6>
+    </div>
+    <div class="card-body">
+      <form (ngSubmit)="onOnboardTenant()">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Tenant Code</label>
+            <input type="text" class="form-control text-uppercase" name="tenantCode" [(ngModel)]="tenantCode" placeholder="e.g. HDFC001" required />
+            <div class="form-text extra-small">Unique alphanumeric identifier (e.g. HDFC001)</div>
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Full Tenant Legal Name</label>
+            <input type="text" class="form-control" name="tenantName" [(ngModel)]="tenantName" placeholder="e.g. HDFC Bank Ltd" required />
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Display Brand Name</label>
+            <input type="text" class="form-control" name="displayName" [(ngModel)]="displayName" placeholder="e.g. HDFC Bank" required />
+          </div>
+
+          <div class="col-12 text-end mt-3">
+            <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="toggleOnboardForm()">Cancel</button>
+            <button type="submit" class="btn btn-aml-primary btn-sm" [disabled]="isSubmitting">
+              <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-1"></span>
+              Provision & Onboard Bank
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Bank Tenants Table -->
+  <div class="card aml-card shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Tenant Code</th>
+              <th>Bank Name</th>
+              <th>Display Name</th>
+              <th>Database Schema</th>
+              <th>Status</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="isLoading">
+              <td colspan="6" class="text-center py-4 text-muted">
+                <div class="spinner-border spinner-border-sm me-2" role="status"></div> Loading bank tenants...
+              </td>
+            </tr>
+
+            <tr *ngIf="!isLoading && tenants.length === 0">
+              <td colspan="6" class="text-center py-4 text-muted">
+                No bank tenants onboarded yet. Click <strong>Onboard New Bank</strong> to add one.
+              </td>
+            </tr>
+
+            <tr *ngFor="let tenant of tenants">
+              <td class="font-monospace fw-bold text-dark">{{ tenant.tenantCode }}</td>
+              <td class="fw-semibold text-dark">{{ tenant.tenantName }}</td>
+              <td>{{ tenant.displayName }}</td>
+              <td class="font-monospace text-muted small">{{ tenant.schemaName || 'tenant_' + tenant.tenantCode.toLowerCase() }}</td>
+              <td>
+                <span
+                  class="status-badge"
+                  [ngClass]="{
+                    'status-active': tenant.status === 'ACTIVE',
+                    'status-onboarding': tenant.status === 'ONBOARDING',
+                    'status-suspended': tenant.status === 'SUSPENDED'
+                  }"
+                >
+                  <span class="status-dot"></span>
+                  {{ tenant.status || 'ACTIVE' }}
+                </span>
+              </td>
+              <td class="text-end">
+                <button class="btn btn-outline-primary btn-sm" (click)="goToAddBankAdmin(tenant)" title="Add Bank Admin User">
+                  <i class="bi bi-person-plus me-1"></i> Add Bank Admin
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

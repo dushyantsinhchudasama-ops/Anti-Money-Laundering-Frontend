@@ -1,0 +1,39 @@
+:host {
+  display: block;
+}
+
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Active */
+.status-active {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+/* Onboarding */
+.status-onboarding {
+  background-color: #fff8e1;
+  color: #b26a00;
+}
+
+/* Suspended */
+.status-suspended {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: currentColor;
+}

@@ -1,0 +1,8 @@
+.login-wrapper {
+  background-color: var(--aml-background);
+}
+
+.login-card {
+  width: 100%;
+  max-width: 420px;
+}

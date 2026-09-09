@@ -1,0 +1,295 @@
+<div class="container-fluid p-0">
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center aml-page-header mb-3">
+    <div>
+      <h3 class="fw-bold text-dark m-0">Alert Monitoring & Case Assignment</h3>
+      <p class="text-muted small m-0">Inspect real-time transaction detection alerts and group alerts into officer investigation cases</p>
+    </div>
+    <div>
+      <button class="btn btn-aml-primary btn-sm d-flex align-items-center gap-1" [disabled]="selectedAlertIds.length === 0" (click)="openAssignModal()">
+        <i class="bi bi-briefcase-fill"></i>
+        Assign Selected Alerts ({{ selectedAlertIds.length }})
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show small" role="alert">
+    <i class="bi bi-check-circle-fill me-1"></i> {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show small" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ errorMessage }}
+  </div>
+
+  <!-- Metric Stats Bar (Matching Dashboard Card Theme) -->
+  <div class="row g-3 mb-4" *ngIf="stats">
+    <div class="col-md-3">
+      <div class="card aml-card p-3">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <span class="text-muted small fw-semibold text-uppercase">Total Alerts</span>
+            <h3 class="fw-bold text-dark mt-1 mb-0">{{ stats.totalAlerts || 0 }}</h3>
+          </div>
+          <div class="p-3 bg-light rounded text-primary fs-2">
+            <i class="bi bi-bell"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card aml-card p-3">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <span class="text-muted small fw-semibold text-uppercase">New / Unassigned</span>
+            <h3 class="fw-bold text-dark mt-1 mb-0">{{ stats.newAlerts || 0 }}</h3>
+          </div>
+          <div class="p-3 bg-light rounded text-primary fs-2">
+            <i class="bi bi-exclamation-triangle"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card aml-card p-3">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <span class="text-muted small fw-semibold text-uppercase">High / Critical</span>
+            <h3 class="fw-bold text-dark mt-1 mb-0">{{ (stats.highSeverityAlerts || 0) + (stats.criticalSeverityAlerts || 0) }}</h3>
+          </div>
+          <div class="p-3 bg-light rounded text-primary fs-2">
+            <i class="bi bi-shield-exclamation"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card aml-card p-3">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <span class="text-muted small fw-semibold text-uppercase">Cases Created</span>
+            <h3 class="fw-bold text-dark mt-1 mb-0">{{ stats.caseCreatedAlerts || 0 }}</h3>
+          </div>
+          <div class="p-3 bg-light rounded text-primary fs-2">
+            <i class="bi bi-briefcase"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Bar Card -->
+  <div class="card aml-card p-3 mb-3 shadow-sm">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold">Filter by Severity</label>
+        <select class="form-select" [(ngModel)]="selectedSeverity" (change)="loadAlerts()">
+          <option value="">-- All Severities --</option>
+          <option value="CRITICAL">CRITICAL</option>
+          <option value="HIGH">HIGH</option>
+          <option value="MEDIUM">MEDIUM</option>
+          <option value="LOW">LOW</option>
+        </select>
+      </div>
+
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold">Filter by Status</label>
+        <select class="form-select" [(ngModel)]="selectedStatus" (change)="loadAlerts()">
+          <option value="">-- All Statuses --</option>
+          <option value="NEW">NEW</option>
+          <option value="UNDER_REVIEW">UNDER REVIEW</option>
+          <option value="CASE_CREATED">CASE CREATED</option>
+          <option value="DISMISSED">DISMISSED</option>
+        </select>
+      </div>
+
+      <div class="col-md-4 text-end">
+        <button class="btn btn-outline-secondary btn-sm" (click)="selectedSeverity = ''; selectedStatus = ''; loadAlerts()">
+          <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alerts Table Card -->
+  <div class="card aml-card shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 40px;">
+                <input type="checkbox" class="form-check-input" (change)="toggleSelectAll($event)" />
+              </th>
+              <th>Alert Code</th>
+              <th>Rule / Typology</th>
+              <th>Severity</th>
+              <th>Trigger Amount</th>
+              <th>Status</th>
+              <th>Generated At</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="isLoading">
+              <td colspan="8" class="text-center py-4 text-muted">
+                <div class="spinner-border spinner-border-sm me-2" role="status"></div> Loading transaction alerts...
+              </td>
+            </tr>
+
+            <tr *ngIf="!isLoading && alerts.length === 0">
+              <td colspan="8" class="text-center py-4 text-muted">
+                No transaction alerts found matching criteria.
+              </td>
+            </tr>
+
+            <tr *ngFor="let alert of alerts">
+              <td>
+                <input
+                  type="checkbox"
+                  class="form-check-input"
+                  [checked]="isSelected(alert.alertId)"
+                  (change)="toggleAlertSelection(alert.alertId)"
+                  [disabled]="alert.status === 'CASE_CREATED'"
+                />
+              </td>
+              <td class="font-monospace fw-bold text-dark">{{ alert.alertCode || alert.alertId.substring(0, 8) }}</td>
+              <td>
+                <div class="fw-semibold text-dark">{{ alert.ruleName || 'AML Detection Rule' }}</div>
+                <div class="small text-muted font-monospace">{{ alert.ruleCode || 'RULE-SPEC' }}</div>
+              </td>
+              <td>
+                <span [ngClass]="{
+                  'badge-risk-high': alert.severity === 'HIGH' || alert.severity === 'CRITICAL',
+                  'badge-risk-medium': alert.severity === 'MEDIUM',
+                  'badge-risk-low': alert.severity === 'LOW'
+                }" class="badge">
+                  {{ alert.severity }}
+                </span>
+              </td>
+              <td class="font-monospace fw-bold text-dark">
+                {{ alert.triggerAmount ? (alert.triggerAmount | currency: alert.currency || 'USD') : '-' }}
+              </td>
+              <td>
+                <span [ngClass]="{
+                  'badge bg-warning text-dark': alert.status === 'NEW',
+                  'badge bg-info text-dark': alert.status === 'UNDER_REVIEW',
+                  'badge bg-success': alert.status === 'CASE_CREATED',
+                  'badge bg-secondary': alert.status === 'DISMISSED'
+                }">
+                  {{ alert.status }}
+                </span>
+              </td>
+              <td class="small text-muted">{{ alert.createdAt | date:'short' }}</td>
+              <td class="text-end">
+                <button class="btn btn-outline-info btn-sm" (click)="openAlertDetail(alert.alertId)">
+                  <i class="bi bi-eye me-1"></i> Detail
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Assign Alert to Case Modal -->
+  <div *ngIf="showAssignModal" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content aml-card">
+        <div class="modal-header bg-primary text-white py-2">
+          <h5 class="modal-title fw-bold fs-6">
+            <i class="bi bi-briefcase me-2"></i>Assign {{ selectedAlertIds.length }} Alert(s) to Case
+          </h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeAssignModal()"></button>
+        </div>
+        <div class="modal-body">
+          <form (ngSubmit)="onAssignAlerts()">
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Target Compliance Officer</label>
+              <select class="form-select" name="assignedToId" [(ngModel)]="caseForm.assignedToId" required>
+                <option value="">-- Choose Active Officer --</option>
+                <option *ngFor="let officer of officers" [value]="officer.userId">
+                  {{ officer.firstName }} {{ officer.lastName }} ({{ officer.email }})
+                </option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Case Notes / Briefing</label>
+              <textarea class="form-control" rows="3" name="notes" [(ngModel)]="caseForm.notes" placeholder="Provide investigation guidelines for the compliance officer..."></textarea>
+            </div>
+
+            <div class="text-end border-top pt-3">
+              <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="closeAssignModal()">Cancel</button>
+              <button type="submit" class="btn btn-aml-primary btn-sm" [disabled]="isSubmitting || !caseForm.assignedToId">
+                <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-1"></span>
+                Create Case & Assign
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alert Detail Modal -->
+  <div *ngIf="showDetailModal && viewingAlertDetail" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content aml-card">
+        <div class="modal-header bg-dark text-white py-2">
+          <h5 class="modal-title fw-bold fs-6">
+            <i class="bi bi-info-circle me-2"></i>Alert Specification: {{ viewingAlertDetail.alertCode || viewingAlertDetail.alertId }}
+          </h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeDetailModal()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="small text-muted fw-semibold text-uppercase">Detection Rule</label>
+              <div class="fw-bold fs-6 text-dark">{{ viewingAlertDetail.ruleName || 'AML Detection Rule' }}</div>
+              <div class="small text-muted font-monospace">{{ viewingAlertDetail.ruleCode }}</div>
+            </div>
+
+            <div class="col-md-3">
+              <label class="small text-muted fw-semibold text-uppercase">Severity</label>
+              <div>
+                <span [ngClass]="{
+                  'badge-risk-high': viewingAlertDetail.severity === 'HIGH' || viewingAlertDetail.severity === 'CRITICAL',
+                  'badge-risk-medium': viewingAlertDetail.severity === 'MEDIUM',
+                  'badge-risk-low': viewingAlertDetail.severity === 'LOW'
+                }" class="badge">
+                  {{ viewingAlertDetail.severity }}
+                </span>
+              </div>
+            </div>
+
+            <div class="col-md-3">
+              <label class="small text-muted fw-semibold text-uppercase">Alert Status</label>
+              <div><span class="badge bg-secondary">{{ viewingAlertDetail.status }}</span></div>
+            </div>
+
+            <div class="col-12 border-top pt-2">
+              <label class="small text-muted fw-semibold text-uppercase mb-2">Trigger Parameters & Details</label>
+              <div class="p-3 bg-light rounded font-monospace small border">
+                <div *ngIf="viewingAlertDetail.triggerAmount">
+                  <strong>Trigger Amount:</strong> {{ viewingAlertDetail.triggerAmount }} {{ viewingAlertDetail.currency || 'USD' }}
+                </div>
+                <div *ngIf="viewingAlertDetail.parameters">
+                  <span *ngFor="let entry of viewingAlertDetail.parameters | keyvalue" class="d-block">
+                    <strong>{{ entry.key }}:</strong> {{ entry.value }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer py-2">
+          <button type="button" class="btn btn-secondary btn-sm" (click)="closeDetailModal()">Close Detail</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

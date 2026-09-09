@@ -1,0 +1,70 @@
+<div class="login-wrapper d-flex align-items-center justify-content-center min-vh-100">
+  <div class="card aml-card shadow-sm p-4 login-card">
+    <div class="text-center mb-4">
+      <div class="fs-2 text-primary mb-1">
+        <i class="bi bi-shield-lock-fill"></i>
+      </div>
+      <h4 class="fw-bold text-dark mb-1">AML Compliance Portal</h4>
+      <p class="text-muted small">Anti-Money Laundering Management System</p>
+    </div>
+
+    <div *ngIf="errorMessage" class="alert alert-danger py-2 small" role="alert">
+      <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ errorMessage }}
+    </div>
+
+    <div *ngIf="infoMessage" class="alert alert-info py-2 small" role="alert">
+      <i class="bi bi-info-circle-fill me-1"></i> {{ infoMessage }}
+    </div>
+
+    <form (ngSubmit)="onLogin()">
+      <div class="mb-3">
+        <label for="email" class="form-label small fw-semibold">Email Address</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          [(ngModel)]="email"
+          class="form-control"
+          placeholder="user@bank.com"
+          required
+        />
+      </div>
+
+      <div class="mb-3">
+        <label for="password" class="form-label small fw-semibold">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          [(ngModel)]="password"
+          class="form-control"
+          placeholder="••••••••"
+          required
+        />
+      </div>
+
+      <div class="mb-4">
+        <label for="tenantCode" class="form-label small fw-semibold">
+          Tenant Code <span class="text-muted fw-normal">(Leave blank for System Admin)</span>
+        </label>
+        <input
+          type="text"
+          id="tenantCode"
+          name="tenantCode"
+          [(ngModel)]="tenantCode"
+          class="form-control text-uppercase"
+          placeholder="e.g. BANK001"
+        />
+      </div>
+
+      <button
+        type="submit"
+        class="btn btn-aml-primary w-100 py-2 fw-semibold"
+        [disabled]="isLoading"
+      >
+        <span *ngIf="isLoading" class="spinner-border spinner-border-sm me-2" role="status"></span>
+        {{ isLoading ? 'Authenticating...' : 'Sign In' }}
+      </button>
+    </form>
+  </div>
+</div>

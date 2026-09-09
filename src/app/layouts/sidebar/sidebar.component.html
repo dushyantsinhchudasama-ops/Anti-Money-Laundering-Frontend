@@ -1,0 +1,27 @@
+<aside class="sidebar bg-dark text-white p-3">
+  <div class="sidebar-header border-bottom border-secondary pb-3 mb-3">
+    <span class="fs-6 text-uppercase tracking-wide font-monospace text-light fw-bold">
+      {{ role.replace('_', ' ') }}
+    </span>
+  </div>
+
+  <ul class="nav nav-pills flex-column mb-auto gap-1">
+    @for (item of items; track item.route) {
+    <li class="nav-item">
+      <a
+        [routerLink]="item.route"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+        class="nav-link text-white d-flex align-items-center gap-2"
+      >
+        <i *ngIf="item.icon" [class]="'bi ' + item.icon"></i>
+        <span>{{ item.label }}</span>
+      </a>
+    </li>
+  }
+  </ul>
+
+  <div class="mt-auto border-top border-secondary pt-3 text-muted small">
+    AML Compliance System v1.0
+  </div>
+</aside>

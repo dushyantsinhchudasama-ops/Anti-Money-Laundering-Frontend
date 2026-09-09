@@ -1,0 +1,72 @@
+<div class="container-fluid p-0">
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center aml-page-header mb-3">
+    <div>
+      <h3 class="fw-bold text-dark m-0">Institutional SAR / STR Filing Audit Log</h3>
+      <p class="text-muted small m-0">Regulatory Suspicious Activity & Suspicious Transaction Reports submitted to FIU</p>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show small" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ errorMessage }}
+  </div>
+
+  <!-- Filing Log Table Card -->
+  <div class="card aml-card shadow-sm">
+    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+      <h6 class="fw-bold text-dark m-0">
+        <i class="bi bi-file-earmark-pdf me-2 text-danger"></i>Filed Regulatory Compliance Reports
+      </h6>
+      <span class="badge bg-primary" *ngIf="filingLogs.length > 0">{{ filingLogs.length }} Reports Filed</span>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Reference Number</th>
+              <th>Case Code</th>
+              <th>Report Type</th>
+              <th>Filing Status</th>
+              <th>Filed By</th>
+              <th>Filing Timestamp</th>
+              <th class="text-end">Export PDF</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="isLoading">
+              <td colspan="7" class="text-center py-4 text-muted">
+                <div class="spinner-border spinner-border-sm me-2" role="status"></div> Loading filing logs...
+              </td>
+            </tr>
+
+            <tr *ngIf="!isLoading && filingLogs.length === 0">
+              <td colspan="7" class="text-center py-4 text-muted">
+                No SAR / STR filings recorded yet.
+              </td>
+            </tr>
+
+            <tr *ngFor="let log of filingLogs">
+              <td class="font-monospace fw-bold text-dark">{{ log.referenceNumber || log.sarStrId.substring(0, 8) }}</td>
+              <td class="font-monospace text-muted small">{{ log.caseCode || log.caseId.substring(0, 8) }}</td>
+              <td>
+                <span class="badge bg-secondary font-monospace">{{ log.reportType || 'SAR' }}</span>
+              </td>
+              <td>
+                <span class="badge bg-success">{{ log.status || 'FILED' }}</span>
+              </td>
+              <td>{{ log.filedByEmail || 'Compliance Officer' }}</td>
+              <td class="small text-muted">{{ log.filedAt ? (log.filedAt | date:'medium') : '-' }}</td>
+              <td class="text-end">
+                <button class="btn btn-outline-danger btn-sm" (click)="downloadPdf(log.sarStrId, log.referenceNumber)">
+                  <i class="bi bi-file-earmark-pdf me-1"></i> Download PDF
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,589 @@
+<div class="container-fluid p-0">
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center aml-page-header mb-3">
+    <div>
+      <h3 class="fw-bold text-dark m-0">Rule Engine Management</h3>
+      <p class="text-muted small m-0">Configure, update, assign, and inspect system-wide AML detection rules across bank tenants</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button class="btn btn-aml-primary btn-sm d-flex align-items-center gap-1" (click)="toggleCreateForm()" *ngIf="activeTab === 'all-rules'">
+        <i class="bi" [ngClass]="showCreateForm ? 'bi-x-lg' : 'bi-plus-circle'"></i>
+        {{ showCreateForm ? 'Cancel' : 'Create New Rule' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Module Tabs -->
+  <ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+      <button class="nav-link text-dark fw-semibold" [class.active]="activeTab === 'all-rules'" (click)="setTab('all-rules')">
+        <i class="bi bi-cpu me-1"></i> System Rules Catalog
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link text-dark fw-semibold" [class.active]="activeTab === 'bank-assignments'" (click)="setTab('bank-assignments')">
+        <i class="bi bi-building-check me-1"></i> Bank Assigned Rules
+      </button>
+    </li>
+  </ul>
+
+  <!-- Feedback Alert Messages -->
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show small" role="alert">
+    <i class="bi bi-check-circle-fill me-1"></i> {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show small" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ errorMessage }}
+  </div>
+
+  <!-- TAB 1: ALL SYSTEM RULES -->
+  <div *ngIf="activeTab === 'all-rules'">
+    <!-- Create Rule Form -->
+    <div *ngIf="showCreateForm" class="card aml-card mb-4 shadow-sm">
+      <div class="card-header bg-white border-bottom py-2">
+        <h6 class="fw-bold text-primary m-0">
+          <i class="bi bi-plus-square me-2"></i>Create System AML Rule
+        </h6>
+      </div>
+      <div class="card-body">
+        <form (ngSubmit)="onCreateRule()">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Rule Name</label>
+              <input type="text" class="form-control" name="ruleName" [(ngModel)]="ruleForm.ruleName" placeholder="e.g. High Structuring Threshold" required />
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold">Rule Typology</label>
+              <select class="form-select" name="typology" [(ngModel)]="ruleForm.typology">
+                <option value="STRUCTURING_SMURFING">Structuring / Smurfing</option>
+                <option value="VELOCITY_CHECK">Velocity Check</option>
+                <option value="GEOGRAPHIC_RISK">Geographic High-Risk</option>
+                <option value="PEP_EXPOSURE">PEP Exposure</option>
+                <option value="RAPID_PASS_THROUGH">Rapid Pass-Through</option>
+                <option value="ROUND_AMOUNT_FLAGGING">Round Amount Flagging</option>
+                <option value="DORMANT_ACCOUNT">Dormant Account Reactivation</option>
+                <option value="LAYERING">Layering</option>
+                <option value="FRAUD_RELATED_ML">Fraud-Related ML</option>
+                <option value="UTURN_TRANSACTION">U-Turn Transaction</option>
+                <option value="CIRCULAR_LOOPING">Circular Looping</option>
+              </select>
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold">Default Severity</label>
+              <select class="form-select" name="severity" [(ngModel)]="ruleForm.defaultSeverity">
+                <option value="LOW">LOW</option>
+                <option value="MEDIUM">MEDIUM</option>
+                <option value="HIGH">HIGH</option>
+                <option value="CRITICAL">CRITICAL</option>
+              </select>
+            </div>
+
+            <div class="col-md-12">
+              <label class="form-label small fw-semibold">Rule Description</label>
+              <textarea class="form-control" rows="2" name="description" [(ngModel)]="ruleForm.description" placeholder="Provide operational context for compliance officers..."></textarea>
+            </div>
+
+            <!-- Dynamic Parameters Section based on Selected Typology -->
+            <div class="col-12 border-top pt-3">
+              <h6 class="fw-bold text-dark small mb-3">
+                <i class="bi bi-sliders me-1 text-primary"></i>Required Parameters for {{ ruleForm.typology.replace('_', ' ') }}
+              </h6>
+
+              <!-- STRUCTURING_SMURFING Parameters -->
+              <div *ngIf="ruleForm.typology === 'STRUCTURING_SMURFING'" class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Window (Days)</label>
+                  <input type="number" class="form-control" name="windowDays" [(ngModel)]="ruleForm.windowDays" required />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Reporting Threshold ($)</label>
+                  <input type="number" class="form-control" name="reportingThreshold" [(ngModel)]="ruleForm.reportingThreshold" required />
+                </div>
+              </div>
+
+              <!-- VELOCITY_CHECK Parameters -->
+              <div *ngIf="ruleForm.typology === 'VELOCITY_CHECK'" class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Window (Days)</label>
+                  <input type="number" class="form-control" name="windowDays" [(ngModel)]="ruleForm.windowDays" required />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Max Transaction Count</label>
+                  <input type="number" class="form-control" name="maxTransactionCount" [(ngModel)]="ruleForm.maxTransactionCount" required />
+                </div>
+              </div>
+
+              <!-- GEOGRAPHIC_RISK Parameters -->
+              <div *ngIf="ruleForm.typology === 'GEOGRAPHIC_RISK'" class="row g-3">
+                <div class="col-md-12">
+                  <label class="form-label small fw-semibold">High Risk Country Codes (Comma-Separated)</label>
+                  <input type="text" class="form-control font-monospace" name="highRiskCountriesStr" [(ngModel)]="ruleForm.highRiskCountriesStr" placeholder="e.g. IR, KP, SY, RU" required />
+                </div>
+              </div>
+
+              <!-- PEP_EXPOSURE Parameters -->
+              <div *ngIf="ruleForm.typology === 'PEP_EXPOSURE'" class="row g-3">
+                <div class="col-md-12">
+                  <label class="form-label small fw-semibold">Minimum Amount Threshold ($)</label>
+                  <input type="number" class="form-control" name="minAmountThreshold" [(ngModel)]="ruleForm.minAmountThreshold" required />
+                </div>
+              </div>
+
+              <!-- RAPID_PASS_THROUGH Parameters -->
+              <div *ngIf="ruleForm.typology === 'RAPID_PASS_THROUGH'" class="row g-3">
+                <div class="col-md-4">
+                  <label class="form-label small fw-semibold">Window (Hours)</label>
+                  <input type="number" class="form-control" name="windowHours" [(ngModel)]="ruleForm.windowHours" required />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label small fw-semibold">Minimum Amount Threshold ($)</label>
+                  <input type="number" class="form-control" name="minAmountThreshold" [(ngModel)]="ruleForm.minAmountThreshold" required />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label small fw-semibold">Pass Through Ratio (0.01 - 1.0)</label>
+                  <input type="number" step="0.05" min="0.01" max="1.0" class="form-control" name="passThroughRatio" [(ngModel)]="ruleForm.passThroughRatio" required />
+                </div>
+              </div>
+
+              <!-- ROUND_AMOUNT_FLAGGING Parameters -->
+              <div *ngIf="ruleForm.typology === 'ROUND_AMOUNT_FLAGGING'" class="row g-3">
+                <div class="col-md-12">
+                  <label class="form-label small fw-semibold">Round Amount Modulo Divisor ($)</label>
+                  <input type="number" class="form-control" name="moduloThreshold" [(ngModel)]="ruleForm.moduloThreshold" required />
+                </div>
+              </div>
+
+              <!-- DORMANT_ACCOUNT Parameters -->
+              <div *ngIf="ruleForm.typology === 'DORMANT_ACCOUNT'" class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Dormant Period (Days)</label>
+                  <input type="number" class="form-control" name="dormantDays" [(ngModel)]="ruleForm.dormantDays" required />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Minimum Amount Threshold ($)</label>
+                  <input type="number" class="form-control" name="minAmountThreshold" [(ngModel)]="ruleForm.minAmountThreshold" required />
+                </div>
+              </div>
+
+              <!-- Default Fallback Parameters -->
+              <div *ngIf="ruleForm.typology !== 'STRUCTURING_SMURFING' && ruleForm.typology !== 'VELOCITY_CHECK' && ruleForm.typology !== 'GEOGRAPHIC_RISK' && ruleForm.typology !== 'PEP_EXPOSURE' && ruleForm.typology !== 'RAPID_PASS_THROUGH' && ruleForm.typology !== 'ROUND_AMOUNT_FLAGGING' && ruleForm.typology !== 'DORMANT_ACCOUNT'" class="row g-3">
+                <div class="col-md-12">
+                  <label class="form-label small fw-semibold">Minimum Transaction Amount ($)</label>
+                  <input type="number" class="form-control" name="minAmountThreshold" [(ngModel)]="ruleForm.minAmountThreshold" required />
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 text-end mt-4">
+              <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="toggleCreateForm()">Cancel</button>
+              <button type="submit" class="btn btn-aml-primary btn-sm" [disabled]="isSubmitting">
+                <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-1"></span>
+                Save Rule
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Edit / Update Rule Form Card -->
+    <div *ngIf="showUpdateForm && editingRule" class="card aml-card mb-4 border-warning shadow-sm">
+      <div class="card-header bg-warning text-dark py-2 d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold m-0">
+          <i class="bi bi-pencil-square me-2"></i>Update Rule: {{ editingRule.ruleCode }} - {{ editingRule.ruleName }}
+        </h6>
+        <span class="badge bg-dark">{{ editingRule.typology }}</span>
+      </div>
+      <div class="card-body">
+        <form (ngSubmit)="onUpdateRule()">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Rule Name</label>
+              <input type="text" class="form-control" name="editRuleName" [(ngModel)]="editForm.ruleName" required />
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold">Default Severity</label>
+              <select class="form-select" name="editRuleSeverity" [(ngModel)]="editForm.defaultSeverity">
+                <option value="LOW">LOW</option>
+                <option value="MEDIUM">MEDIUM</option>
+                <option value="HIGH">HIGH</option>
+                <option value="CRITICAL">CRITICAL</option>
+              </select>
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold">Status</label>
+              <select class="form-select" name="editIsActive" [(ngModel)]="editForm.isActive">
+                <option [ngValue]="true">ACTIVE</option>
+                <option [ngValue]="false">INACTIVE</option>
+              </select>
+            </div>
+
+            <div class="col-md-12">
+              <label class="form-label small fw-semibold">Rule Description</label>
+              <textarea class="form-control" rows="2" name="editRuleDescription" [(ngModel)]="editForm.description"></textarea>
+            </div>
+
+            <!-- Edit Dynamic Parameters based on editingRule.typology -->
+            <div class="col-12 border-top pt-3">
+              <h6 class="fw-bold text-dark small mb-3">Update Parameters for {{ editingRule.typology.replace('_', ' ') }}</h6>
+
+              <div *ngIf="editingRule.typology === 'STRUCTURING_SMURFING'" class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Window (Days)</label>
+                  <input type="number" class="form-control" name="editWindowDays" [(ngModel)]="editForm.windowDays" required />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Reporting Threshold ($)</label>
+                  <input type="number" class="form-control" name="editReportingThreshold" [(ngModel)]="editForm.reportingThreshold" required />
+                </div>
+              </div>
+
+              <div *ngIf="editingRule.typology === 'VELOCITY_CHECK'" class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Window (Days)</label>
+                  <input type="number" class="form-control" name="editWindowDays" [(ngModel)]="editForm.windowDays" required />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Max Transaction Count</label>
+                  <input type="number" class="form-control" name="editMaxTransactionCount" [(ngModel)]="editForm.maxTransactionCount" required />
+                </div>
+              </div>
+
+              <div *ngIf="editingRule.typology === 'GEOGRAPHIC_RISK'" class="row g-3">
+                <div class="col-md-12">
+                  <label class="form-label small fw-semibold">High Risk Country Codes (Comma-Separated)</label>
+                  <input type="text" class="form-control font-monospace" name="editHighRiskCountriesStr" [(ngModel)]="editForm.highRiskCountriesStr" required />
+                </div>
+              </div>
+
+              <div *ngIf="editingRule.typology === 'PEP_EXPOSURE'" class="row g-3">
+                <div class="col-md-12">
+                  <label class="form-label small fw-semibold">Minimum Amount Threshold ($)</label>
+                  <input type="number" class="form-control" name="editMinAmountThreshold" [(ngModel)]="editForm.minAmountThreshold" required />
+                </div>
+              </div>
+
+              <div *ngIf="editingRule.typology === 'RAPID_PASS_THROUGH'" class="row g-3">
+                <div class="col-md-4">
+                  <label class="form-label small fw-semibold">Window (Hours)</label>
+                  <input type="number" class="form-control" name="editWindowHours" [(ngModel)]="editForm.windowHours" required />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label small fw-semibold">Minimum Amount Threshold ($)</label>
+                  <input type="number" class="form-control" name="editMinAmountThreshold" [(ngModel)]="editForm.minAmountThreshold" required />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label small fw-semibold">Pass Through Ratio (0.01 - 1.0)</label>
+                  <input type="number" step="0.05" class="form-control" name="editPassThroughRatio" [(ngModel)]="editForm.passThroughRatio" required />
+                </div>
+              </div>
+
+              <div *ngIf="editingRule.typology === 'ROUND_AMOUNT_FLAGGING'" class="row g-3">
+                <div class="col-md-12">
+                  <label class="form-label small fw-semibold">Round Amount Modulo Divisor ($)</label>
+                  <input type="number" class="form-control" name="editModuloThreshold" [(ngModel)]="editForm.moduloThreshold" required />
+                </div>
+              </div>
+
+              <div *ngIf="editingRule.typology === 'DORMANT_ACCOUNT'" class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Dormant Period (Days)</label>
+                  <input type="number" class="form-control" name="editDormantDays" [(ngModel)]="editForm.dormantDays" required />
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label small fw-semibold">Minimum Amount Threshold ($)</label>
+                  <input type="number" class="form-control" name="editMinAmountThreshold" [(ngModel)]="editForm.minAmountThreshold" required />
+                </div>
+              </div>
+            </div>
+
+            <div class="col-12 text-end mt-4">
+              <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="showUpdateForm = false">Cancel</button>
+              <button type="submit" class="btn btn-warning btn-sm fw-semibold" [disabled]="isSubmitting">
+                <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-1"></span>
+                Update Rule Details
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Assign Rule Modal Card -->
+    <div *ngIf="showAssignForm && selectedRule" class="card aml-card mb-4 border-primary shadow-sm">
+      <div class="card-header bg-primary text-white py-2">
+        <h6 class="fw-bold m-0">
+          <i class="bi bi-link-45deg me-2"></i>Assign Rule: {{ selectedRule.ruleName }} ({{ selectedRule.ruleCode }})
+        </h6>
+      </div>
+      <div class="card-body">
+        <form (ngSubmit)="onAssignRule()">
+          <div class="row g-3 align-items-end">
+            <div class="col-md-8">
+              <label class="form-label small fw-semibold">Select Tenant Bank</label>
+              <select class="form-select" name="tenantId" [(ngModel)]="selectedTenantId" required>
+                <option value="">-- Choose Tenant Bank --</option>
+                <option *ngFor="let tenant of tenants" [value]="tenant.tenantId">
+                  {{ tenant.displayName }} ({{ tenant.tenantCode }})
+                </option>
+              </select>
+            </div>
+            <div class="col-md-4 text-end">
+              <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="showAssignForm = false">Cancel</button>
+              <button type="submit" class="btn btn-aml-primary btn-sm" [disabled]="isSubmitting || !selectedTenantId">
+                <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-1"></span>
+                Assign Rule to Bank
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- All System Rules Table -->
+    <div class="card aml-card shadow-sm">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Rule Code</th>
+                <th>Rule Name</th>
+                <th>Typology</th>
+                <th>Severity</th>
+                <th>Status</th>
+                <th>Configured Parameters</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="isLoading">
+                <td colspan="7" class="text-center py-4 text-muted">
+                  <div class="spinner-border spinner-border-sm me-2" role="status"></div> Loading detection rules...
+                </td>
+              </tr>
+
+              <tr *ngIf="!isLoading && rules.length === 0">
+                <td colspan="7" class="text-center py-4 text-muted">
+                  No rules found. Click <strong>Create New Rule</strong> to add one.
+                </td>
+              </tr>
+
+              <tr *ngFor="let rule of rules">
+                <td class="font-monospace fw-bold text-dark">{{ rule.ruleCode }}</td>
+                <td>
+                  <div class="fw-semibold text-dark">{{ rule.ruleName }}</div>
+                  <div class="small text-muted text-truncate" style="max-width: 250px;">{{ rule.description }}</div>
+                </td>
+                <td><span class="badge bg-secondary">{{ rule.typology }}</span></td>
+                <td>
+                  <span [ngClass]="{
+                    'badge-risk-high': rule.defaultSeverity === 'HIGH' || rule.defaultSeverity === 'CRITICAL',
+                    'badge-risk-medium': rule.defaultSeverity === 'MEDIUM',
+                    'badge-risk-low': rule.defaultSeverity === 'LOW'
+                  }" class="badge">
+                    {{ rule.defaultSeverity }}
+                  </span>
+                </td>
+                <td>
+                  <span [class]="rule.isActive ? 'badge bg-success' : 'badge bg-secondary'">
+                    {{ rule.isActive ? 'ACTIVE' : 'INACTIVE' }}
+                  </span>
+                </td>
+                <td class="small text-muted font-monospace">
+                  <div *ngIf="rule.parameters">
+                    <span *ngFor="let entry of rule.parameters | keyvalue" class="d-inline-block me-2">
+                      <strong>{{ entry.key }}:</strong> {{ entry.value }}
+                    </span>
+                  </div>
+                </td>
+                <td class="text-end">
+                  <button class="btn btn-outline-warning btn-sm me-1" (click)="openEditForm(rule)" title="Edit / Update Rule">
+                    <i class="bi bi-pencil me-1"></i> Edit
+                  </button>
+                  <button class="btn btn-outline-primary btn-sm" (click)="openAssignModal(rule)" title="Assign Rule to Bank">
+                    <i class="bi bi-link-45deg me-1"></i> Assign
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: BANK ASSIGNED RULES OVERVIEW & UNASSIGNMENT -->
+  <div *ngIf="activeTab === 'bank-assignments'">
+    <!-- Tenant Bank Selector Bar -->
+    <div class="card aml-card p-3 mb-4 shadow-sm">
+      <div class="row align-items-center">
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold text-dark m-0">Select Target Bank Tenant to Inspect Assigned Rules:</label>
+        </div>
+        <div class="col-md-6">
+          <select class="form-select" [(ngModel)]="selectedBankIdForFilter" (change)="loadBankAssignments()">
+            <option value="">-- Choose Tenant Bank --</option>
+            <option *ngFor="let tenant of tenants" [value]="tenant.tenantId">
+              {{ tenant.displayName }} (Code: {{ tenant.tenantCode }})
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assigned Rules Table -->
+    <div class="card aml-card shadow-sm">
+      <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold text-dark m-0">
+          <i class="bi bi-building-check me-2 text-primary"></i>Detailed Rules Currently Assigned to Bank Tenant
+        </h6>
+        <span class="badge bg-primary" *ngIf="assignedRulesForBank.length > 0">
+          {{ assignedRulesForBank.length }} Active Rules Assigned
+        </span>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Rule Code</th>
+                <th>Rule Name & Specs</th>
+                <th>Typology</th>
+                <th>Severity</th>
+                <th>Parameters Configured</th>
+                <th>Assigned By & Date</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="isLoadingAssignments">
+                <td colspan="7" class="text-center py-4 text-muted">
+                  <div class="spinner-border spinner-border-sm me-2" role="status"></div> Loading bank assigned rules...
+                </td>
+              </tr>
+
+              <tr *ngIf="!isLoadingAssignments && assignedRulesForBank.length === 0">
+                <td colspan="7" class="text-center py-4 text-muted">
+                  No rules currently assigned to this bank tenant. Switch to <strong>System Rules Catalog</strong> tab to assign rules.
+                </td>
+              </tr>
+
+              <tr *ngFor="let assignment of assignedRulesForBank">
+                <td class="font-monospace fw-bold text-dark">{{ assignment.ruleCode }}</td>
+                <td>
+                  <div class="fw-semibold text-dark">{{ assignment.ruleName }}</div>
+                  <div class="small text-muted text-truncate" style="max-width: 250px;" *ngIf="getRuleDetails(assignment.ruleId)?.description">
+                    {{ getRuleDetails(assignment.ruleId)?.description }}
+                  </div>
+                </td>
+                <td>
+                  <span class="badge bg-secondary" *ngIf="getRuleDetails(assignment.ruleId)?.typology">
+                    {{ getRuleDetails(assignment.ruleId)?.typology }}
+                  </span>
+                </td>
+                <td>
+                  <span *ngIf="getRuleDetails(assignment.ruleId)" [ngClass]="{
+                    'badge-risk-high': getRuleDetails(assignment.ruleId)?.defaultSeverity === 'HIGH' || getRuleDetails(assignment.ruleId)?.defaultSeverity === 'CRITICAL',
+                    'badge-risk-medium': getRuleDetails(assignment.ruleId)?.defaultSeverity === 'MEDIUM',
+                    'badge-risk-low': getRuleDetails(assignment.ruleId)?.defaultSeverity === 'LOW'
+                  }" class="badge">
+                    {{ getRuleDetails(assignment.ruleId)?.defaultSeverity }}
+                  </span>
+                </td>
+                <td class="small text-muted font-monospace">
+                  <div *ngIf="getRuleDetails(assignment.ruleId)?.parameters">
+                    <span *ngFor="let entry of getRuleDetails(assignment.ruleId)?.parameters | keyvalue" class="d-inline-block me-2">
+                      <strong>{{ entry.key }}:</strong> {{ entry.value }}
+                    </span>
+                  </div>
+                </td>
+                <td class="small text-muted">
+                  <div><i class="bi bi-person me-1"></i>{{ assignment.assignedByEmail || 'System Admin' }}</div>
+                  <div class="extra-small text-muted"><i class="bi bi-clock me-1"></i>{{ assignment.assignedAt ? (assignment.assignedAt | date:'short') : '-' }}</div>
+                </td>
+                <td class="text-end">
+                  <button class="btn btn-outline-info btn-sm me-1" (click)="openRuleDetailModal(assignment.ruleId)" title="View Full Rule Specification">
+                    <i class="bi bi-eye me-1"></i> View Specs
+                  </button>
+                  <button class="btn btn-outline-danger btn-sm" (click)="onUnassignRule(assignment.ruleId, assignment.tenantId, assignment.ruleName)" title="Unassign Rule from Bank">
+                    <i class="bi bi-trash me-1"></i> Unassign
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FULL RULE SPECIFICATION MODAL -->
+  <div *ngIf="showDetailModal && viewingRuleDetail" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content aml-card">
+        <div class="modal-header bg-dark text-white py-2">
+          <h5 class="modal-title fw-bold">
+            <i class="bi bi-info-circle me-2"></i>Rule Specification: {{ viewingRuleDetail.ruleCode }}
+          </h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeRuleDetailModal()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="small text-muted fw-semibold text-uppercase">Rule Name</label>
+              <div class="fw-bold fs-6 text-dark">{{ viewingRuleDetail.ruleName }}</div>
+            </div>
+            <div class="col-md-3">
+              <label class="small text-muted fw-semibold text-uppercase">Typology</label>
+              <div><span class="badge bg-secondary">{{ viewingRuleDetail.typology }}</span></div>
+            </div>
+            <div class="col-md-3">
+              <label class="small text-muted fw-semibold text-uppercase">Default Severity</label>
+              <div>
+                <span [ngClass]="{
+                  'badge-risk-high': viewingRuleDetail.defaultSeverity === 'HIGH' || viewingRuleDetail.defaultSeverity === 'CRITICAL',
+                  'badge-risk-medium': viewingRuleDetail.defaultSeverity === 'MEDIUM',
+                  'badge-risk-low': viewingRuleDetail.defaultSeverity === 'LOW'
+                }" class="badge">
+                  {{ viewingRuleDetail.defaultSeverity }}
+                </span>
+              </div>
+            </div>
+
+            <div class="col-12">
+              <label class="small text-muted fw-semibold text-uppercase">Operational Description</label>
+              <div class="p-2 bg-light rounded text-dark small border">{{ viewingRuleDetail.description || 'No description specified.' }}</div>
+            </div>
+
+            <div class="col-12 border-top pt-2">
+              <label class="small text-muted fw-semibold text-uppercase mb-2">Configured Detection Parameters</label>
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Parameter Key</th>
+                      <th>Configured Value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let param of viewingRuleDetail.parameters | keyvalue">
+                      <td class="font-monospace fw-bold text-dark">{{ param.key }}</td>
+                      <td class="font-monospace">{{ param.value }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer py-2">
+          <button type="button" class="btn btn-secondary btn-sm" (click)="closeRuleDetailModal()">Close Specs</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
