@@ -36,6 +36,12 @@ export class AlertManagementComponent implements OnInit {
   // Multi-alert selection for Case Assignment
   selectedAlertIds: string[] = [];
 
+  // Pagination state
+  currentPage = 0;
+  pageSize = 20;
+  totalPages = 0;
+  totalElements = 0;
+
   // Modals state
   showAssignModal = false;
   showDetailModal = false;
@@ -52,23 +58,28 @@ export class AlertManagementComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadAlertStats();
-    this.loadAlerts();
+    this.loadAlerts(0);
     this.loadOfficers();
   }
 
   loadAlertStats(): void {
     this.bankAdminService.getAlertStats().subscribe({
       next: (res) => this.stats = res,
-      error: () => {}
+      error: () => { }
     });
   }
 
-  loadAlerts(): void {
+  loadAlerts(page: number = 0): void {
+    this.currentPage = page;
     this.isLoading = true;
     this.bankAdminService.getAlerts(
       this.selectedSeverity || undefined,
       undefined,
-      this.selectedStatus || undefined
+      this.selectedStatus || undefined,
+      undefined,
+      undefined,
+      this.currentPage,
+      this.pageSize
     ).pipe(
       finalize(() => {
         this.isLoading = false;
@@ -77,16 +88,43 @@ export class AlertManagementComponent implements OnInit {
     ).subscribe({
       next: (res) => {
         this.alerts = res.content || [];
+        this.totalElements = res.totalElements || this.alerts.length;
+        this.totalPages = res.totalPages || (this.totalElements > 0 ? Math.ceil(this.totalElements / this.pageSize) : 1);
         this.selectedAlertIds = [];
       },
       error: (err) => this.errorMessage = err.error?.message || 'Failed to load transaction alerts.'
     });
   }
 
+  onPageSizeChange(newSize: any): void {
+    this.pageSize = Number(newSize);
+    this.loadAlerts(0);
+  }
+
+  goToPage(page: number): void {
+    if (page >= 0 && (this.totalPages === 0 || page < this.totalPages)) {
+      this.loadAlerts(page);
+    }
+  }
+
+  get minRecordIndex(): number {
+    if (this.totalElements === 0) return 0;
+    return this.currentPage * this.pageSize + 1;
+  }
+
+  get maxRecordIndex(): number {
+    return Math.min((this.currentPage + 1) * this.pageSize, this.totalElements);
+  }
+
   loadOfficers(): void {
-    this.bankAdminService.getComplianceOfficers().subscribe({
-      next: (res) => this.officers = (res.content || []).filter(o => o.isActive),
-      error: () => {}
+    this.bankAdminService.getComplianceOfficers(0, 100).subscribe({
+      next: (res) => {
+        this.officers = (res.content || []).filter(o => o.isActive);
+        if (this.officers.length > 0 && !this.caseForm.assignedToId) {
+          this.caseForm.assignedToId = this.officers[0].userId;
+        }
+      },
+      error: () => { }
     });
   }
 
@@ -116,10 +154,13 @@ export class AlertManagementComponent implements OnInit {
       this.errorMessage = 'Please select at least one alert to assign to a case.';
       return;
     }
+    if (this.officers.length === 0) {
+      this.loadOfficers();
+    }
     this.showAssignModal = true;
     this.errorMessage = '';
     this.successMessage = '';
-    if (this.officers.length > 0) {
+    if (this.officers.length > 0 && !this.caseForm.assignedToId) {
       this.caseForm.assignedToId = this.officers[0].userId;
     }
   }
@@ -138,10 +179,13 @@ export class AlertManagementComponent implements OnInit {
     this.errorMessage = '';
     this.successMessage = '';
 
+    const notesContent = this.caseForm.notes.trim() || undefined;
     const request = {
       alertIds: this.selectedAlertIds,
+      assigneeId: this.caseForm.assignedToId,
       assignedToId: this.caseForm.assignedToId,
-      notes: this.caseForm.notes.trim() || undefined
+      initialNote: notesContent,
+      notes: notesContent
     };
 
     this.bankAdminService.assignAlertsToCase(request).pipe(
@@ -154,6 +198,7 @@ export class AlertManagementComponent implements OnInit {
         this.successMessage = `Case '${res.caseCode}' created successfully with ${this.selectedAlertIds.length} alert(s) assigned!`;
         this.showAssignModal = false;
         this.selectedAlertIds = [];
+        this.caseForm.notes = '';
         this.loadAlerts();
         this.loadAlertStats();
       },

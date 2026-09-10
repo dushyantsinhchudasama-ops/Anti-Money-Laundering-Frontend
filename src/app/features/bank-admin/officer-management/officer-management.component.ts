@@ -55,13 +55,17 @@ export class OfficerManagementComponent implements OnInit {
 
   loadWorkloads(): void {
     this.bankAdminService.getComplianceOfficerWorkloads().subscribe({
-      next: (res) => this.workloads = res || [],
+      next: (res) => {
+        this.workloads = res || [];
+        this.cdr.detectChanges();
+      },
       error: () => {}
     });
   }
 
   getWorkloadForOfficer(officerId: string): number {
-    const w = this.workloads.find(item => item.officerId === officerId);
+    if (!this.workloads || !officerId) return 0;
+    const w = this.workloads.find(item => (item.userId || item.officerId) === officerId);
     return w ? w.activeCaseCount : 0;
   }
 
@@ -81,13 +85,16 @@ export class OfficerManagementComponent implements OnInit {
     this.errorMessage = '';
     this.successMessage = '';
 
+    const userCodeTrimmed = this.officerForm.userCode.trim().toUpperCase();
+    const empId = this.officerForm.employeeId.trim() || `EMP-${userCodeTrimmed}`;
+
     const request = {
-      userCode: this.officerForm.userCode.trim().toUpperCase(),
+      userCode: userCodeTrimmed,
       firstName: this.officerForm.firstName.trim(),
       lastName: this.officerForm.lastName.trim(),
       email: this.officerForm.email.trim(),
       phoneNumber: this.officerForm.phoneNumber.trim() || undefined,
-      employeeId: this.officerForm.employeeId.trim() || undefined
+      employeeId: empId
     };
 
     this.bankAdminService.createComplianceOfficer(request).pipe(
@@ -103,7 +110,16 @@ export class OfficerManagementComponent implements OnInit {
         this.loadOfficers();
       },
       error: (err) => {
-        this.errorMessage = err.error?.message || 'Failed to create compliance officer.';
+        const errObj = err.error;
+        if (typeof errObj === 'string') {
+          this.errorMessage = errObj;
+        } else if (errObj && errObj.message) {
+          this.errorMessage = errObj.message;
+        } else if (errObj && errObj.error) {
+          this.errorMessage = errObj.error;
+        } else {
+          this.errorMessage = 'Failed to create compliance officer. Please check if user code or email already exists.';
+        }
       }
     });
   }
@@ -125,6 +141,7 @@ export class OfficerManagementComponent implements OnInit {
       next: () => {
         this.successMessage = `Officer '${officer.firstName} ${officer.lastName}' ${action}d successfully!`;
         this.loadOfficers();
+        this.loadWorkloads();
       },
       error: (err) => {
         this.errorMessage = err.error?.message || `Failed to ${action} officer.`;

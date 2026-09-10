@@ -5,6 +5,11 @@
       <h3 class="fw-bold text-dark m-0">Transaction Batch File Ingestion</h3>
       <p class="text-muted small m-0">Upload daily institutional transaction batches for automated AML rule engine detection</p>
     </div>
+    <div>
+      <button class="btn btn-outline-secondary btn-sm" (click)="downloadSampleExcel()">
+        <i class="bi bi-download me-1"></i> Download Sample Excel Template
+      </button>
+    </div>
   </div>
 
   <!-- Messages -->
@@ -17,10 +22,13 @@
 
   <!-- File Upload Card -->
   <div class="card aml-card shadow-sm mb-4">
-    <div class="card-header bg-white border-bottom py-3">
+    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
       <h6 class="fw-bold text-primary m-0">
-        <i class="bi bi-cloud-arrow-up me-2"></i>Institutional Batch File Upload (CSV / JSON)
+        <i class="bi bi-cloud-arrow-up me-2"></i>Institutional Batch File Upload (.XLSX)
       </h6>
+      <span class="badge bg-light text-dark border">
+        Required Columns: TxnNo, OriginatorAccountNo, Amount, TxnTimestamp, etc.
+      </span>
     </div>
     <div class="card-body">
       <div
@@ -30,39 +38,41 @@
         style="cursor: pointer;"
       >
         <i class="bi bi-file-earmark-spreadsheet fs-1 text-primary mb-2"></i>
-        <h6 class="fw-bold text-dark mb-1">Drag and drop your transaction CSV batch file here</h6>
-        <p class="text-muted small mb-3">Supports standard AML CSV transaction schema formats</p>
+        <h6 class="fw-bold text-dark mb-1">Drag and drop your transaction Excel file here</h6>
+        <p class="text-muted small mb-3">Supports standard AML transaction batch schemas (.xlsx, .xls)</p>
         
-        <input type="file" id="batchFileInput" class="d-none" accept=".csv,.json" (change)="onFileSelected($event)" />
-        <label for="batchFileInput" class="btn btn-outline-primary btn-sm px-4">
+        <input type="file" id="batchFileInput" class="d-none" accept=".xlsx,.xls" (change)="onFileSelected($event)" />
+        <label for="batchFileInput" class="btn btn-outline-primary btn-sm px-4 me-2">
           <i class="bi bi-folder2-open me-1"></i> Browse File
         </label>
 
-        <div *ngIf="selectedFile" class="mt-3 p-2 bg-white rounded border d-inline-block text-dark font-monospace small">
-          <i class="bi bi-file-text me-1 text-success"></i> {{ selectedFile.name }} ({{ (selectedFile.size / 1024).toFixed(1) }} KB)
+        <div *ngIf="selectedFile" class="mt-3 p-2 bg-white rounded border d-inline-block text-dark font-monospace small shadow-sm">
+          <i class="bi bi-file-earmark-check me-1 text-success"></i> {{ selectedFile.name }} ({{ (selectedFile.size / 1024).toFixed(1) }} KB)
         </div>
       </div>
 
       <div class="text-end">
         <button class="btn btn-aml-primary px-4 btn-sm" [disabled]="!selectedFile || isUploading" (click)="onUpload()">
           <span *ngIf="isUploading" class="spinner-border spinner-border-sm me-1"></span>
-          <i *ngIf="!isUploading" class="bi bi-upload me-1"></i>
-          Upload & Execute Rule Detection
+          <i *ngIf="!isUploading" class="bi bi-play-circle me-1"></i>
+          Upload & Execute Rule Engine
         </button>
       </div>
     </div>
   </div>
 
   <!-- Processing Summary Results Card -->
-  <div *ngIf="lastUploadResponse" class="card aml-card shadow-sm">
+  <div *ngIf="lastUploadResponse" class="card aml-card shadow-sm mb-4">
     <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
       <h6 class="fw-bold text-dark m-0">
-        <i class="bi bi-file-earmark-check me-2 text-success"></i>Latest Batch Execution Summary
+        <i class="bi bi-file-earmark-check me-2 text-primary"></i>Latest Batch Execution Summary
+        <span *ngIf="lastUploadResponse.batchCode" class="text-muted font-monospace small ms-2">({{ lastUploadResponse.batchCode }})</span>
       </h6>
       <span [ngClass]="{
-        'badge bg-success': lastUploadResponse.status === 'COMPLETED',
-        'badge bg-warning text-dark': lastUploadResponse.status === 'PROCESSING',
-        'badge bg-danger': lastUploadResponse.status === 'REJECTED'
+        'badge bg-success': lastUploadResponse.status === 'PROCESSED_NO_ALERTS' || lastUploadResponse.status === 'COMPLETED',
+        'badge bg-warning text-dark': lastUploadResponse.status === 'PROCESSED_ALERTS_GENERATED' || lastUploadResponse.status === 'PROCESSING',
+        'badge bg-danger text-white': lastUploadResponse.status === 'REJECTED' || lastUploadResponse.status === 'REJECTED_FORMAT',
+        'badge bg-info text-dark': lastUploadResponse.status === 'QUEUED'
       }">
         {{ lastUploadResponse.status }}
       </span>
@@ -77,23 +87,64 @@
         </div>
         <div class="col-md-3">
           <div class="p-3 bg-light rounded border border-success">
-            <span class="text-muted small fw-semibold text-uppercase d-block">Processed Successfully</span>
-            <span class="fs-4 fw-bold text-success font-monospace">{{ lastUploadResponse.processedRecords || 0 }}</span>
+            <span class="text-muted small fw-semibold text-uppercase d-block">Parsed & Ingested</span>
+            <span class="fs-4 fw-bold text-success font-monospace">{{ getProcessedCount() }}</span>
           </div>
         </div>
         <div class="col-md-3">
           <div class="p-3 bg-light rounded border border-danger">
-            <span class="text-muted small fw-semibold text-uppercase d-block font-monospace">Rejected Records</span>
-            <span class="fs-4 fw-bold text-danger font-monospace">{{ lastUploadResponse.rejectedRecords || 0 }}</span>
+            <span class="text-muted small fw-semibold text-uppercase d-block font-monospace">Validation Errors</span>
+            <span class="fs-4 fw-bold text-danger font-monospace">{{ getErrorCount() }}</span>
           </div>
         </div>
         <div class="col-md-3">
           <div class="p-3 bg-light rounded border border-warning">
             <span class="text-muted small fw-semibold text-uppercase d-block">Alerts Triggered</span>
-            <span class="fs-4 fw-bold text-warning font-monospace">{{ lastUploadResponse.alertsTriggered || 0 }}</span>
+            <span class="fs-4 fw-bold text-warning font-monospace">{{ getAlertsCount() }}</span>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- Detailed Validation Errors Table Card -->
+  <div *ngIf="lastUploadResponse?.errors && lastUploadResponse!.errors!.length > 0" class="card aml-card shadow-sm border-danger">
+    <div class="card-header bg-danger-subtle text-danger border-bottom py-3 d-flex justify-content-between align-items-center">
+      <h6 class="fw-bold m-0">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>Batch File Validation Errors Breakdown ({{ lastUploadResponse!.errors!.length }} Error(s))
+      </h6>
+      <span class="badge bg-danger text-white">Action Required</span>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 small">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 60px;" class="ps-3">#</th>
+              <th style="width: 120px;">Row Number</th>
+              <th style="width: 200px;">Target Column / Field</th>
+              <th>Validation Error Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let err of lastUploadResponse!.errors; let i = index">
+              <td class="ps-3 text-muted font-monospace">{{ i + 1 }}</td>
+              <td>
+                <span class="badge bg-danger-subtle text-danger border border-danger font-monospace">
+                  Row {{ err.rowNumber }}
+                </span>
+              </td>
+              <td>
+                <code class="fw-bold text-dark">{{ err.fieldName }}</code>
+              </td>
+              <td class="text-danger fw-semibold">
+                {{ err.errorMessage }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>
+

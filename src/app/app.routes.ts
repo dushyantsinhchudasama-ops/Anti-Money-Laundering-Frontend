@@ -82,6 +82,14 @@ export const routes: Routes = [
       {
         path: '',
         loadComponent: () => import('./features/compliance-officer/compliance-dashboard/compliance-dashboard.component').then(m => m.ComplianceDashboardComponent)
+      },
+      {
+        path: 'cases',
+        loadComponent: () => import('./features/compliance-officer/my-cases/my-cases.component').then(m => m.MyCasesComponent)
+      },
+      {
+        path: 'cases/:caseId/investigate',
+        loadComponent: () => import('./features/compliance-officer/case-investigation/case-investigation.component').then(m => m.CaseInvestigationComponent)
       }
     ]
   },
