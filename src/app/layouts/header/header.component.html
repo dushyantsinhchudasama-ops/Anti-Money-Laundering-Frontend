@@ -1,0 +1,24 @@
+<header class="navbar navbar-expand bg-white border-bottom px-3 py-2">
+  <div class="container-fluid p-0 d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center">
+      <span class="fs-5 fw-bold text-dark me-3">
+        <i class="bi bi-shield-check text-primary me-2"></i>{{ portalTitle }}
+      </span>
+      <span *ngIf="currentUser?.tenantCode" class="badge bg-secondary">
+        Tenant: {{ currentUser?.tenantCode }}
+      </span>
+    </div>
+
+    <div class="d-flex align-items-center gap-3">
+      <div class="text-end me-2" *ngIf="currentUser">
+        <div class="small fw-semibold text-dark">{{ currentUser.email }}</div>
+        <div class="text-muted" style="font-size: 0.75rem;">
+          <span class="badge bg-dark">{{ currentUser.role }}</span>
+        </div>
+      </div>
+      <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1" (click)="onLogout()">
+        <i class="bi bi-box-arrow-right"></i> Logout
+      </button>
+    </div>
+  </div>
+</header>

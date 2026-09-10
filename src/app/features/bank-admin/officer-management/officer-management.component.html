@@ -1,0 +1,150 @@
+<div class="container-fluid p-0">
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center aml-page-header mb-3">
+    <div>
+      <h3 class="fw-bold text-dark m-0">Compliance Officer Management</h3>
+      <p class="text-muted small m-0">Provision compliance officers, inspect workload assignments, and manage account statuses</p>
+    </div>
+    <div>
+      <button class="btn btn-aml-primary btn-sm d-flex align-items-center gap-1" (click)="toggleCreateForm()">
+        <i class="bi" [ngClass]="showCreateForm ? 'bi-x-lg' : 'bi-person-plus-fill'"></i>
+        {{ showCreateForm ? 'Cancel' : 'Add Compliance Officer' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show small" role="alert">
+    <i class="bi bi-check-circle-fill me-1"></i> {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show small" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ errorMessage }}
+  </div>
+
+  <!-- Create Officer Form Card -->
+  <div *ngIf="showCreateForm" class="card aml-card mb-4 shadow-sm">
+    <div class="card-header bg-white border-bottom py-2">
+      <h6 class="fw-bold text-primary m-0">
+        <i class="bi bi-person-plus me-2"></i>Provision New Compliance Officer Account
+      </h6>
+    </div>
+    <div class="card-body">
+      <form (ngSubmit)="onCreateOfficer()">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">User Code</label>
+            <input type="text" class="form-control" name="userCode" [(ngModel)]="officerForm.userCode" placeholder="e.g. OFF-1001" required />
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">First Name</label>
+            <input type="text" class="form-control" name="firstName" [(ngModel)]="officerForm.firstName" placeholder="e.g. John" required />
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Last Name</label>
+            <input type="text" class="form-control" name="lastName" [(ngModel)]="officerForm.lastName" placeholder="e.g. Doe" required />
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Email Address</label>
+            <input type="email" class="form-control" name="email" [(ngModel)]="officerForm.email" placeholder="e.g. officer@bank.com" required />
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Phone Number</label>
+            <input type="text" class="form-control" name="phoneNumber" [(ngModel)]="officerForm.phoneNumber" placeholder="e.g. +1 555 123 4567" />
+          </div>
+
+          <div class="col-md-4">
+            <label class="form-label small fw-semibold">Employee ID</label>
+            <input type="text" class="form-control" name="employeeId" [(ngModel)]="officerForm.employeeId" placeholder="e.g. EMP-9921" />
+          </div>
+
+          <div class="col-12 text-end mt-4">
+            <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="toggleCreateForm()">Cancel</button>
+            <button type="submit" class="btn btn-aml-primary btn-sm" [disabled]="isSubmitting">
+              <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-1"></span>
+              Create Officer Account
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Officers Table Card -->
+  <div class="card aml-card shadow-sm">
+    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+      <h6 class="fw-bold text-dark m-0">
+        <i class="bi bi-people me-2 text-primary"></i>Active Institutional Compliance Officers
+      </h6>
+      <span class="badge bg-primary" *ngIf="officers.length > 0">{{ officers.length }} Registered Officers</span>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>User Code</th>
+              <th>Officer Name</th>
+              <th>Email</th>
+              <th>Employee ID</th>
+              <th>Status</th>
+              <th>Active Cases</th>
+              <th>Created Date</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="isLoading">
+              <td colspan="8" class="text-center py-4 text-muted">
+                <div class="spinner-border spinner-border-sm me-2" role="status"></div> Loading compliance officers...
+              </td>
+            </tr>
+
+            <tr *ngIf="!isLoading && officers.length === 0">
+              <td colspan="8" class="text-center py-4 text-muted">
+                No compliance officers onboarded yet. Click <strong>Add Compliance Officer</strong> to create one.
+              </td>
+            </tr>
+
+            <tr *ngFor="let officer of officers">
+              <td class="font-monospace fw-bold text-dark">{{ officer.userCode }}</td>
+              <td class="fw-semibold text-dark">{{ officer.firstName }} {{ officer.lastName }}</td>
+              <td>{{ officer.email }}</td>
+              <td class="font-monospace text-muted small">{{ officer.employeeId || '-' }}</td>
+              <td>
+                <span class="status-badge" [ngClass]="officer.isActive ? 'status-active' : 'status-suspended'">
+                  <span class="status-dot"></span>
+                  {{ officer.isActive ? 'ACTIVE' : 'INACTIVE' }}
+                </span>
+              </td>
+              <td>
+                <span class="badge bg-info text-dark font-monospace">
+                  {{ getWorkloadForOfficer(officer.userId) }} Open Cases
+                </span>
+              </td>
+              <td class="small text-muted">{{ officer.createdAt | date:'shortDate' }}</td>
+              <td class="text-end">
+                <button
+                  class="btn btn-sm me-1"
+                  [ngClass]="officer.isActive ? 'btn-outline-danger' : 'btn-outline-success'"
+                  (click)="toggleStatus(officer)"
+                  [title]="officer.isActive ? 'Deactivate Account' : 'Activate Account'"
+                >
+                  <i class="bi" [ngClass]="officer.isActive ? 'bi-person-x' : 'bi-person-check'"></i>
+                  {{ officer.isActive ? 'Deactivate' : 'Activate' }}
+                </button>
+
+                <button class="btn btn-outline-warning btn-sm" (click)="onResetPassword(officer)" title="Reset Account Password">
+                  <i class="bi bi-key me-1"></i> Reset Password
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

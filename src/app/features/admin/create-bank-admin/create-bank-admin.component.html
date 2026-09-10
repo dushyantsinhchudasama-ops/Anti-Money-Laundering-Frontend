@@ -1,0 +1,86 @@
+<div class="container-fluid p-0">
+  <!-- Page Header -->
+  <div class="d-flex justify-content-between align-items-center aml-page-header">
+    <div>
+      <h3 class="fw-bold text-dark m-0">Add Bank Administrator</h3>
+      <p class="text-muted small m-0">Provision and assign institutional Bank Admin user accounts to onboarded tenants</p>
+    </div>
+    <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1" (click)="goToBankList()">
+      <i class="bi bi-arrow-left"></i> Back to Bank Onboarding
+    </button>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show small" role="alert">
+    <i class="bi bi-check-circle-fill me-1"></i> {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show small" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ errorMessage }}
+  </div>
+
+  <!-- Create Bank Admin Form Card -->
+  <div class="card aml-card shadow-sm max-w-700">
+    <div class="card-header bg-white border-bottom py-3">
+      <h6 class="fw-bold text-primary m-0">
+        <i class="bi bi-person-plus-fill me-2"></i>Provision Bank Admin Account
+      </h6>
+    </div>
+
+    <div class="card-body">
+      <form (ngSubmit)="onCreateBankAdmin()">
+        <!-- Tenant Bank Selector -->
+        <div class="mb-4">
+          <label class="form-label small fw-semibold text-dark">Target Tenant Bank</label>
+          <select class="form-select" name="selectedTenantId" [(ngModel)]="selectedTenantId" required [disabled]="isLoadingTenants">
+            <option value="">-- Select Bank Tenant --</option>
+            <option *ngFor="let tenant of tenants" [value]="tenant.tenantId">
+              {{ tenant.displayName }} (Code: {{ tenant.tenantCode }})
+            </option>
+          </select>
+          <div *ngIf="isLoadingTenants" class="form-text small text-muted">Loading active tenant banks...</div>
+        </div>
+
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">User Code</label>
+            <input type="text" class="form-control text-uppercase" name="userCode" [(ngModel)]="userCode" placeholder="e.g. ADM001" required />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Employee ID (Optional)</label>
+            <input type="text" class="form-control" name="employeeId" [(ngModel)]="employeeId" placeholder="e.g. EMP-9921" />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">First Name</label>
+            <input type="text" class="form-control" name="firstName" [(ngModel)]="firstName" placeholder="e.g. Sarah" required />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Last Name</label>
+            <input type="text" class="form-control" name="lastName" [(ngModel)]="lastName" placeholder="e.g. Connor" required />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Email Address</label>
+            <input type="email" class="form-control" name="email" [(ngModel)]="email" placeholder="admin@bank.com" required />
+            <div class="form-text extra-small">Account login credentials will be generated for this email.</div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Phone Number (Optional)</label>
+            <input type="text" class="form-control" name="phoneNumber" [(ngModel)]="phoneNumber" placeholder="+1234567890" />
+          </div>
+
+          <div class="col-12 text-end mt-4">
+            <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="goToBankList()">Cancel</button>
+            <button type="submit" class="btn btn-aml-primary btn-sm" [disabled]="isSubmitting || !selectedTenantId">
+              <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-1"></span>
+              Create Bank Admin User
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
