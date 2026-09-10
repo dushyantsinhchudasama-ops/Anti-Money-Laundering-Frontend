@@ -28,7 +28,7 @@
         <div class="d-flex align-items-center justify-content-between">
           <div>
             <span class="text-muted small fw-semibold text-uppercase">Total Alerts</span>
-            <h3 class="fw-bold text-dark mt-1 mb-0">{{ stats.totalAlerts || 0 }}</h3>
+            <h3 class="fw-bold text-dark mt-1 mb-0">{{ stats.totalAlertsCount ?? stats.totalAlerts ?? 0 }}</h3>
           </div>
           <div class="p-3 bg-light rounded text-primary fs-2">
             <i class="bi bi-bell"></i>
@@ -41,8 +41,8 @@
       <div class="card aml-card p-3">
         <div class="d-flex align-items-center justify-content-between">
           <div>
-            <span class="text-muted small fw-semibold text-uppercase">New / Unassigned</span>
-            <h3 class="fw-bold text-dark mt-1 mb-0">{{ stats.newAlerts || 0 }}</h3>
+            <span class="text-muted small fw-semibold text-uppercase">Open / Unassigned</span>
+            <h3 class="fw-bold text-dark mt-1 mb-0">{{ stats.openAlertsCount ?? stats.newAlerts ?? 0 }}</h3>
           </div>
           <div class="p-3 bg-light rounded text-primary fs-2">
             <i class="bi bi-exclamation-triangle"></i>
@@ -55,8 +55,8 @@
       <div class="card aml-card p-3">
         <div class="d-flex align-items-center justify-content-between">
           <div>
-            <span class="text-muted small fw-semibold text-uppercase">High / Critical</span>
-            <h3 class="fw-bold text-dark mt-1 mb-0">{{ (stats.highSeverityAlerts || 0) + (stats.criticalSeverityAlerts || 0) }}</h3>
+            <span class="text-muted small fw-semibold text-uppercase">High Risk Alerts</span>
+            <h3 class="fw-bold text-dark mt-1 mb-0">{{ (stats.highSeverityCount || 0) + (stats.highSeverityAlerts || 0) + (stats.criticalSeverityAlerts || 0) }}</h3>
           </div>
           <div class="p-3 bg-light rounded text-primary fs-2">
             <i class="bi bi-shield-exclamation"></i>
@@ -69,8 +69,8 @@
       <div class="card aml-card p-3">
         <div class="d-flex align-items-center justify-content-between">
           <div>
-            <span class="text-muted small fw-semibold text-uppercase">Cases Created</span>
-            <h3 class="fw-bold text-dark mt-1 mb-0">{{ stats.caseCreatedAlerts || 0 }}</h3>
+            <span class="text-muted small fw-semibold text-uppercase">Assigned to Cases</span>
+            <h3 class="fw-bold text-dark mt-1 mb-0">{{ stats.assignedAlertsCount ?? stats.caseCreatedAlerts ?? 0 }}</h3>
           </div>
           <div class="p-3 bg-light rounded text-primary fs-2">
             <i class="bi bi-briefcase"></i>
@@ -85,9 +85,8 @@
     <div class="row g-3 align-items-end">
       <div class="col-md-4">
         <label class="form-label small fw-semibold">Filter by Severity</label>
-        <select class="form-select" [(ngModel)]="selectedSeverity" (change)="loadAlerts()">
+        <select class="form-select" [(ngModel)]="selectedSeverity" (change)="loadAlerts(0)">
           <option value="">-- All Severities --</option>
-          <option value="CRITICAL">CRITICAL</option>
           <option value="HIGH">HIGH</option>
           <option value="MEDIUM">MEDIUM</option>
           <option value="LOW">LOW</option>
@@ -96,17 +95,16 @@
 
       <div class="col-md-4">
         <label class="form-label small fw-semibold">Filter by Status</label>
-        <select class="form-select" [(ngModel)]="selectedStatus" (change)="loadAlerts()">
+        <select class="form-select" [(ngModel)]="selectedStatus" (change)="loadAlerts(0)">
           <option value="">-- All Statuses --</option>
-          <option value="NEW">NEW</option>
-          <option value="UNDER_REVIEW">UNDER REVIEW</option>
-          <option value="CASE_CREATED">CASE CREATED</option>
-          <option value="DISMISSED">DISMISSED</option>
+          <option value="OPEN">OPEN (Unassigned)</option>
+          <option value="ASSIGNED">ASSIGNED (In Case)</option>
+          <option value="CLOSED">CLOSED</option>
         </select>
       </div>
 
       <div class="col-md-4 text-end">
-        <button class="btn btn-outline-secondary btn-sm" (click)="selectedSeverity = ''; selectedStatus = ''; loadAlerts()">
+        <button class="btn btn-outline-secondary btn-sm" (click)="selectedSeverity = ''; selectedStatus = ''; loadAlerts(0)">
           <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
         </button>
       </div>
@@ -152,7 +150,7 @@
                   class="form-check-input"
                   [checked]="isSelected(alert.alertId)"
                   (change)="toggleAlertSelection(alert.alertId)"
-                  [disabled]="alert.status === 'CASE_CREATED'"
+                  [disabled]="alert.alertStatus === 'ASSIGNED' || alert.status === 'CASE_CREATED'"
                 />
               </td>
               <td class="font-monospace fw-bold text-dark">{{ alert.alertCode || alert.alertId.substring(0, 8) }}</td>
@@ -170,16 +168,16 @@
                 </span>
               </td>
               <td class="font-monospace fw-bold text-dark">
-                {{ alert.triggerAmount ? (alert.triggerAmount | currency: alert.currency || 'USD') : '-' }}
+                {{ (alert.amount ?? alert.triggerAmount) ? ((alert.amount ?? alert.triggerAmount) | currency: (alert.currency || 'USD')) : '-' }}
               </td>
               <td>
                 <span [ngClass]="{
-                  'badge bg-warning text-dark': alert.status === 'NEW',
-                  'badge bg-info text-dark': alert.status === 'UNDER_REVIEW',
-                  'badge bg-success': alert.status === 'CASE_CREATED',
+                  'badge bg-warning text-dark': alert.alertStatus === 'OPEN' || alert.status === 'NEW',
+                  'badge bg-info text-dark': alert.alertStatus === 'ASSIGNED' || alert.status === 'UNDER_REVIEW',
+                  'badge bg-success': alert.alertStatus === 'CLOSED' || alert.status === 'CASE_CREATED',
                   'badge bg-secondary': alert.status === 'DISMISSED'
                 }">
-                  {{ alert.status }}
+                  {{ alert.alertStatus || alert.status }}
                 </span>
               </td>
               <td class="small text-muted">{{ alert.createdAt | date:'short' }}</td>
@@ -191,6 +189,35 @@
             </tr>
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- Table Footer Pagination Bar -->
+    <div class="card-footer bg-white border-top py-3 d-flex justify-content-between align-items-center">
+      <div class="small text-muted">
+        Showing <span class="fw-bold text-dark">{{ minRecordIndex }}</span> to <span class="fw-bold text-dark">{{ maxRecordIndex }}</span> of <span class="fw-bold text-dark">{{ totalElements }}</span> alerts
+        <span class="ms-3">
+          Show
+          <select class="form-select form-select-sm d-inline-block w-auto py-0 px-2 font-monospace" [(ngModel)]="pageSize" (change)="onPageSizeChange(pageSize)">
+            <option [value]="10">10</option>
+            <option [value]="20">20</option>
+            <option [value]="50">50</option>
+            <option [value]="100">100</option>
+          </select>
+          per page
+        </span>
+      </div>
+
+      <div class="d-flex align-items-center gap-1">
+        <button class="btn btn-outline-secondary btn-sm" [disabled]="currentPage === 0 || isLoading" (click)="goToPage(currentPage - 1)">
+          <i class="bi bi-chevron-left me-1"></i> Previous
+        </button>
+        <span class="small font-monospace px-2 text-dark">
+          Page {{ currentPage + 1 }} of {{ totalPages || 1 }}
+        </span>
+        <button class="btn btn-outline-secondary btn-sm" [disabled]="currentPage >= totalPages - 1 || totalPages === 0 || isLoading" (click)="goToPage(currentPage + 1)">
+          Next <i class="bi bi-chevron-right ms-1"></i>
+        </button>
       </div>
     </div>
   </div>
@@ -241,47 +268,101 @@
       <div class="modal-content aml-card">
         <div class="modal-header bg-dark text-white py-2">
           <h5 class="modal-title fw-bold fs-6">
-            <i class="bi bi-info-circle me-2"></i>Alert Specification: {{ viewingAlertDetail.alertCode || viewingAlertDetail.alertId }}
+            <i class="bi bi-info-circle me-2"></i>Alert Details: {{ viewingAlertDetail.alertCode || viewingAlertDetail.alertId }}
           </h5>
           <button type="button" class="btn-close btn-close-white" (click)="closeDetailModal()"></button>
         </div>
         <div class="modal-body">
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label class="small text-muted fw-semibold text-uppercase">Detection Rule</label>
+          <!-- Overview Cards Row -->
+          <div class="row g-3 mb-3">
+            <div class="col-md-5">
+              <label class="small text-muted fw-semibold text-uppercase d-block mb-1">Triggered Rule</label>
               <div class="fw-bold fs-6 text-dark">{{ viewingAlertDetail.ruleName || 'AML Detection Rule' }}</div>
               <div class="small text-muted font-monospace">{{ viewingAlertDetail.ruleCode }}</div>
+              <div *ngIf="viewingAlertDetail.typology" class="badge bg-light text-primary border mt-1">
+                {{ viewingAlertDetail.typology }}
+              </div>
             </div>
 
             <div class="col-md-3">
-              <label class="small text-muted fw-semibold text-uppercase">Severity</label>
+              <label class="small text-muted fw-semibold text-uppercase d-block mb-1">Severity</label>
               <div>
                 <span [ngClass]="{
                   'badge-risk-high': viewingAlertDetail.severity === 'HIGH' || viewingAlertDetail.severity === 'CRITICAL',
                   'badge-risk-medium': viewingAlertDetail.severity === 'MEDIUM',
                   'badge-risk-low': viewingAlertDetail.severity === 'LOW'
-                }" class="badge">
+                }" class="badge fs-6">
                   {{ viewingAlertDetail.severity }}
                 </span>
               </div>
             </div>
 
-            <div class="col-md-3">
-              <label class="small text-muted fw-semibold text-uppercase">Alert Status</label>
-              <div><span class="badge bg-secondary">{{ viewingAlertDetail.status }}</span></div>
+            <div class="col-md-4">
+              <label class="small text-muted fw-semibold text-uppercase d-block mb-1">Alert Status</label>
+              <div>
+                <span [ngClass]="{
+                  'badge bg-warning text-dark': (viewingAlertDetail.alertStatus || viewingAlertDetail.status) === 'OPEN' || (viewingAlertDetail.alertStatus || viewingAlertDetail.status) === 'NEW',
+                  'badge bg-info text-dark': (viewingAlertDetail.alertStatus || viewingAlertDetail.status) === 'ASSIGNED' || (viewingAlertDetail.alertStatus || viewingAlertDetail.status) === 'UNDER_REVIEW',
+                  'badge bg-success': (viewingAlertDetail.alertStatus || viewingAlertDetail.status) === 'CLOSED' || (viewingAlertDetail.alertStatus || viewingAlertDetail.status) === 'CASE_CREATED'
+                }" class="badge fs-6">
+                  {{ viewingAlertDetail.alertStatus || viewingAlertDetail.status }}
+                </span>
+              </div>
+              <div *ngIf="viewingAlertDetail.caseCode" class="small text-muted font-monospace mt-1">
+                Case: {{ viewingAlertDetail.caseCode }}
+              </div>
             </div>
+          </div>
 
-            <div class="col-12 border-top pt-2">
-              <label class="small text-muted fw-semibold text-uppercase mb-2">Trigger Parameters & Details</label>
-              <div class="p-3 bg-light rounded font-monospace small border">
-                <div *ngIf="viewingAlertDetail.triggerAmount">
-                  <strong>Trigger Amount:</strong> {{ viewingAlertDetail.triggerAmount }} {{ viewingAlertDetail.currency || 'USD' }}
+          <!-- Transaction Breakdown Card -->
+          <div class="card bg-light border mb-3">
+            <div class="card-header bg-white py-2 fw-semibold text-primary small">
+              <i class="bi bi-receipt me-1"></i> Triggering Financial Transaction Breakdown
+            </div>
+            <div class="card-body py-2 small">
+              <div class="row g-2">
+                <div class="col-md-4">
+                  <span class="text-muted d-block">Trigger Amount</span>
+                  <strong class="fs-6 text-success font-monospace">
+                    {{ (viewingAlertDetail.amount ?? viewingAlertDetail.triggerAmount) ? ((viewingAlertDetail.amount ?? viewingAlertDetail.triggerAmount) | currency:(viewingAlertDetail.currency || 'USD')) : 'N/A' }}
+                  </strong>
                 </div>
-                <div *ngIf="viewingAlertDetail.parameters">
-                  <span *ngFor="let entry of viewingAlertDetail.parameters | keyvalue" class="d-block">
-                    <strong>{{ entry.key }}:</strong> {{ entry.value }}
-                  </span>
+                <div class="col-md-4">
+                  <span class="text-muted d-block">Transaction Ref No</span>
+                  <span class="font-monospace fw-bold text-dark">{{ viewingAlertDetail.transactionTxnNo || 'N/A' }}</span>
                 </div>
+                <div class="col-md-4">
+                  <span class="text-muted d-block">Transaction Timestamp</span>
+                  <span>{{ viewingAlertDetail.transactionTimestamp ? (viewingAlertDetail.transactionTimestamp | date:'medium') : 'N/A' }}</span>
+                </div>
+
+                <div class="col-md-4">
+                  <span class="text-muted d-block">Type / Direction</span>
+                  <span class="badge bg-secondary me-1">{{ viewingAlertDetail.transactionType || 'N/A' }}</span>
+                  <span class="badge bg-dark">{{ viewingAlertDetail.direction || 'N/A' }}</span>
+                </div>
+                <div class="col-md-4">
+                  <span class="text-muted d-block">Originator Account</span>
+                  <span class="font-monospace text-dark">{{ viewingAlertDetail.originatorAccountNumber || 'N/A' }}</span>
+                </div>
+                <div class="col-md-4">
+                  <span class="text-muted d-block">Counterparty</span>
+                  <span class="fw-semibold text-dark">{{ viewingAlertDetail.counterpartyName || 'N/A' }}</span>
+                  <span *ngIf="viewingAlertDetail.counterpartyBank" class="text-muted small"> ({{ viewingAlertDetail.counterpartyBank }})</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rule Description & Parameters -->
+          <div *ngIf="viewingAlertDetail.ruleDescription || viewingAlertDetail.ruleParameters || viewingAlertDetail.parameters" class="border-top pt-2">
+            <label class="small text-muted fw-semibold text-uppercase mb-2">Rule Criteria & Parameters</label>
+            <p *ngIf="viewingAlertDetail.ruleDescription" class="small text-muted mb-2">
+              {{ viewingAlertDetail.ruleDescription }}
+            </p>
+            <div *ngIf="viewingAlertDetail.ruleParameters || viewingAlertDetail.parameters" class="p-3 bg-light rounded font-monospace small border">
+              <div *ngFor="let entry of (viewingAlertDetail.ruleParameters || viewingAlertDetail.parameters) | keyvalue" class="d-block">
+                <strong>{{ entry.key }}:</strong> {{ entry.value }}
               </div>
             </div>
           </div>

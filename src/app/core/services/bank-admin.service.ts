@@ -25,7 +25,7 @@ import {
 })
 export class BankAdminService {
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // --- Compliance Officer Management ---
 

@@ -13,6 +13,7 @@ import { HeaderComponent } from '../header/header.component';
 })
 export class ComplianceLayoutComponent {
   navItems: NavItem[] = [
-    { label: 'Investigation Workstation', route: '/compliance' }
+    { label: 'Workstation Dashboard', route: '/compliance' },
+    { label: 'My Assigned Cases', route: '/compliance/cases' }
   ];
 }
