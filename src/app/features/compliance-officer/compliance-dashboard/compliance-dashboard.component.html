@@ -1,7 +1,171 @@
 <div class="container-fluid p-0">
   <div class="aml-page-header">
-    <h3 class="fw-bold text-dark m-0">Compliance Officer Workstation</h3>
-    <p class="text-muted small m-0">Assigned Cases & Alert Investigation Workspace</p>
+    <h3 class="fw-bold text-dark m-0">Compliance Officer Dashboard</h3>
+    <p class="text-muted small m-0">Assigned Cases & Alert Investigation Workstation</p>
   </div>
 
+  <!-- Error Alert -->
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show small" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ errorMessage }}
+  </div>
+
+  <!-- Metric Overview Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-3">
+      <div class="card aml-card p-3">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <span class="text-muted small fw-semibold text-uppercase">Total Assigned Cases</span>
+            <h3 class="fw-bold text-dark mt-1 mb-0">{{ dashboardStats?.totalAssignedCases || recentCases.length }}</h3>
+          </div>
+          <div class="p-3 bg-light rounded text-primary fs-2">
+            <i class="bi bi-briefcase"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card aml-card p-3">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <span class="text-muted small fw-semibold text-uppercase">Active Investigations</span>
+            <h3 class="fw-bold text-dark mt-1 mb-0">{{ dashboardStats?.inProgressCasesCount || 0 }}</h3>
+          </div>
+          <div class="p-3 bg-light rounded text-primary fs-2">
+            <i class="bi bi-search"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card aml-card p-3">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <span class="text-muted small fw-semibold text-uppercase">Closed (No Action)</span>
+            <h3 class="fw-bold text-dark mt-1 mb-0">{{ dashboardStats?.closedCasesCount || 0 }}</h3>
+          </div>
+          <div class="p-3 bg-light rounded text-primary fs-2">
+            <i class="bi bi-check-circle"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-3">
+      <div class="card aml-card p-3">
+        <div class="d-flex align-items-center justify-content-between">
+          <div>
+            <span class="text-muted small fw-semibold text-uppercase">SAR / STR Filed</span>
+            <h3 class="fw-bold text-dark mt-1 mb-0">{{ dashboardStats?.escalatedCasesCount || 0 }}</h3>
+          </div>
+          <div class="p-3 bg-light rounded text-primary fs-2">
+            <i class="bi bi-file-earmark-text"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Action Feature Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="card aml-card h-100 p-3">
+        <div class="card-body d-flex flex-column">
+          <div class="fs-3 text-primary mb-2"><i class="bi bi-briefcase-fill"></i></div>
+          <h5 class="fw-bold text-dark">My Assigned Cases</h5>
+          <p class="text-muted small flex-grow-1">Review your active case workload, update investigation statuses, and analyze assigned alerts.</p>
+          <a routerLink="/compliance/cases" class="btn btn-aml-primary btn-sm w-100 text-center">View Workload</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card aml-card h-100 p-3">
+        <div class="card-body d-flex flex-column">
+          <div class="fs-3 text-primary mb-2"><i class="bi bi-search"></i></div>
+          <h5 class="fw-bold text-dark">360° Investigation</h5>
+          <p class="text-muted small flex-grow-1">Perform deep 360° analysis on customer account profiles, transaction networks, and historical alerts.</p>
+          <a routerLink="/compliance/cases" class="btn btn-aml-primary btn-sm w-100 text-center">Investigate Cases</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card aml-card h-100 p-3">
+        <div class="card-body d-flex flex-column">
+          <div class="fs-3 text-primary mb-2"><i class="bi bi-file-earmark-pdf-fill"></i></div>
+          <h5 class="fw-bold text-dark">Regulatory Filings</h5>
+          <p class="text-muted small flex-grow-1">Draft and submit official Suspicious Activity Reports (SAR) and Suspicious Transaction Reports (STR).</p>
+          <a routerLink="/compliance/cases" class="btn btn-aml-primary btn-sm w-100 text-center">Manage Reports</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Workload Queue Table Card -->
+  <div class="card aml-card shadow-sm">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+      <h6 class="fw-bold text-dark m-0">
+        <i class="bi bi-list-task me-2 text-primary"></i>Assigned Case Workload Queue
+      </h6>
+      <span class="badge bg-light text-dark font-monospace">{{ recentCases.length }} Assigned Cases</span>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Case Code</th>
+              <th>Status</th>
+              <th>Alerts Count</th>
+              <th>Assigned Date</th>
+              <th>Last Activity</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngIf="isLoading">
+              <td colspan="6" class="text-center py-4 text-muted">
+                <div class="spinner-border spinner-border-sm me-2"></div> Loading workload queue...
+              </td>
+            </tr>
+
+            <tr *ngIf="!isLoading && recentCases.length === 0">
+              <td colspan="6" class="text-center py-4 text-muted">
+                No cases currently assigned to your workload queue.
+              </td>
+            </tr>
+
+            <tr *ngFor="let c of recentCases" class="cursor-pointer" (click)="goToInvestigation(c.caseId)">
+              <td class="font-monospace fw-bold text-primary">{{ c.caseCode }}</td>
+              <td>
+                <span [ngClass]="{
+                  'badge bg-primary': c.status === 'OPEN',
+                  'badge bg-warning text-dark': c.status === 'INVESTIGATING',
+                  'badge bg-info text-dark': c.status === 'PENDING_APPROVAL',
+                  'badge bg-secondary': c.status === 'CLOSED_NO_ACTION',
+                  'badge bg-danger': c.status === 'SAR_FILED'
+                }">
+                  {{ c.status.replace('_', ' ') }}
+                </span>
+              </td>
+              <td class="font-monospace fw-bold text-dark">{{ c.alertCount || 1 }} Alerts</td>
+              <td class="small text-muted">{{ c.createdAt | date:'short' }}</td>
+              <td class="small text-muted">{{ c.updatedAt ? (c.updatedAt | date:'short') : '-' }}</td>
+              <td class="text-end" (click)="$event.stopPropagation()">
+                <button *ngIf="c.status === 'OPEN'" class="btn btn-warning btn-sm me-1 fw-semibold" (click)="startInvestigation(c.caseId, $event)">
+                  <i class="bi bi-play-fill me-1"></i> Start Investigation
+                </button>
+                <button class="btn btn-outline-primary btn-sm" (click)="goToInvestigation(c.caseId)">
+                  <i class="bi bi-search me-1"></i> 360° Investigate
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 </div>

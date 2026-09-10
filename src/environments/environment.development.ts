@@ -38,6 +38,7 @@ export const environment = {
       reassignCase: (caseId: string) => `${API_BASE_URL}/api/v1/bank/admin/cases/${caseId}/reassign`,
       cases: `${API_BASE_URL}/api/v1/bank/admin/cases`,
       caseDetail: (caseId: string) => `${API_BASE_URL}/api/v1/bank/admin/cases/${caseId}`,
+      caseHistory: (caseId: string) => `${API_BASE_URL}/api/v1/bank/admin/cases/${caseId}/history`,
       sarStr: `${API_BASE_URL}/api/v1/bank/admin/sar-str`,
       sarStrPdf: (sarStrId: string) => `${API_BASE_URL}/api/v1/bank/admin/sar-str/${sarStrId}/pdf`
     },

@@ -41,7 +41,8 @@
       </div>
 
       <div class="col-md-2 text-end">
-        <button class="btn btn-outline-secondary btn-sm" (click)="selectedStatus = ''; selectedOfficerId = ''; loadCases()">
+        <button class="btn btn-outline-secondary btn-sm"
+          (click)="selectedStatus = ''; selectedOfficerId = ''; loadCases()">
           <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
         </button>
       </div>
@@ -101,7 +102,7 @@
                 <button class="btn btn-outline-info btn-sm me-1" (click)="openDetailModal(c.caseId)">
                   <i class="bi bi-eye me-1"></i> View
                 </button>
-                <button class="btn btn-outline-warning btn-sm" (click)="openReassignModal(c)">
+                <button *ngIf="c.status !== 'CLOSED_NO_ACTION' && c.status !== 'CLOSED_SAR_FILED' && c.status !== 'SAR_FILED'" class="btn btn-outline-warning btn-sm" (click)="openReassignModal(c)">
                   <i class="bi bi-person-gear me-1"></i> Reassign
                 </button>
               </td>
@@ -113,7 +114,8 @@
   </div>
 
   <!-- Reassign Case Modal -->
-  <div *ngIf="showReassignModal && reassigningCase" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+  <div *ngIf="showReassignModal && reassigningCase" class="modal fade show d-block" tabindex="-1"
+    style="background-color: rgba(0,0,0,0.5);">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content aml-card">
         <div class="modal-header bg-warning text-dark py-2">
@@ -136,12 +138,16 @@
 
             <div class="mb-3">
               <label class="form-label small fw-semibold">Reassignment Reason / Handover Notes</label>
-              <textarea class="form-control" rows="3" name="reassignmentNotes" [(ngModel)]="reassignForm.reassignmentNotes" placeholder="Explain the reason for workload transfer..."></textarea>
+              <textarea class="form-control" rows="3" name="reassignmentNotes"
+                [(ngModel)]="reassignForm.reassignmentNotes"
+                placeholder="Explain the reason for workload transfer..."></textarea>
             </div>
 
             <div class="text-end border-top pt-3">
-              <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="closeReassignModal()">Cancel</button>
-              <button type="submit" class="btn btn-warning btn-sm fw-semibold" [disabled]="isSubmitting || !reassignForm.newAssignedToId">
+              <button type="button" class="btn btn-outline-secondary btn-sm me-2"
+                (click)="closeReassignModal()">Cancel</button>
+              <button type="submit" class="btn btn-warning btn-sm fw-semibold"
+                [disabled]="isSubmitting || !reassignForm.newAssignedToId">
                 <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-1"></span>
                 Reassign Case
               </button>
@@ -153,7 +159,8 @@
   </div>
 
   <!-- Case Detail Modal -->
-  <div *ngIf="showDetailModal && viewingCase" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+  <div *ngIf="showDetailModal && viewingCase" class="modal fade show d-block" tabindex="-1"
+    style="background-color: rgba(0,0,0,0.5);">
     <div class="modal-dialog modal-dialog-centered modal-lg">
       <div class="modal-content aml-card">
         <div class="modal-header bg-dark text-white py-2">
@@ -184,7 +191,8 @@
               <label class="small text-muted fw-semibold text-uppercase mb-2">Audit Timestamp Details</label>
               <div class="p-3 bg-light rounded small border">
                 <div><strong>Created:</strong> {{ viewingCase.createdAt | date:'fullDate' }}</div>
-                <div><strong>Last Updated:</strong> {{ viewingCase.updatedAt ? (viewingCase.updatedAt | date:'medium') : '-' }}</div>
+                <div><strong>Last Updated:</strong> {{ viewingCase.updatedAt ? (viewingCase.updatedAt | date:'medium') :
+                  '-' }}</div>
               </div>
             </div>
           </div>

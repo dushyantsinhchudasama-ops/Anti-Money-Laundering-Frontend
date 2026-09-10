@@ -63,7 +63,7 @@ export class CaseManagementComponent implements OnInit {
   loadOfficers(): void {
     this.bankAdminService.getComplianceOfficers().subscribe({
       next: (res) => this.officers = (res.content || []).filter(o => o.isActive),
-      error: () => {}
+      error: () => { }
     });
   }
 
@@ -84,6 +84,10 @@ export class CaseManagementComponent implements OnInit {
   }
 
   openReassignModal(caseItem: CaseResponse): void {
+    if (caseItem.status === 'CLOSED_NO_ACTION' || caseItem.status === 'CLOSED_SAR_FILED' || caseItem.status === 'SAR_FILED') {
+      this.errorMessage = `Cannot reassign closed case ${caseItem.caseCode}.`;
+      return;
+    }
     this.reassigningCase = caseItem;
     this.showReassignModal = true;
     this.errorMessage = '';
@@ -108,9 +112,12 @@ export class CaseManagementComponent implements OnInit {
     this.errorMessage = '';
     this.successMessage = '';
 
+    const reassignNote = this.reassignForm.reassignmentNotes.trim() || undefined;
     const request = {
+      newAssigneeId: this.reassignForm.newAssignedToId,
       newAssignedToId: this.reassignForm.newAssignedToId,
-      reassignmentNotes: this.reassignForm.reassignmentNotes.trim() || undefined
+      reason: reassignNote,
+      reassignmentNotes: reassignNote
     };
 
     this.bankAdminService.reassignCase(this.reassigningCase.caseId, request).pipe(

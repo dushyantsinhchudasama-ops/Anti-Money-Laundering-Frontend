@@ -1,56 +1,72 @@
 import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { finalize } from 'rxjs';
 import { ComplianceOfficerService } from '../../../core/services/compliance-officer.service';
-import { ComplianceOfficerDashboardResponse } from '../../../core/models/compliance-officer.model';
-import { CaseResponse } from '../../../core/models/bank-admin.model';
+import { CaseResponse, CaseStatus } from '../../../core/models/bank-admin.model';
 
 @Component({
-  selector: 'app-compliance-dashboard',
+  selector: 'app-my-cases',
   standalone: true,
-  imports: [CommonModule, RouterModule],
-  templateUrl: './compliance-dashboard.component.html',
-  styleUrls: ['./compliance-dashboard.component.css']
+  imports: [CommonModule, FormsModule],
+  templateUrl: './my-cases.component.html',
+  styleUrls: ['./my-cases.component.css']
 })
-export class ComplianceDashboardComponent implements OnInit {
-  dashboardStats: ComplianceOfficerDashboardResponse | null = null;
-  recentCases: CaseResponse[] = [];
+export class MyCasesComponent implements OnInit {
+  cases: CaseResponse[] = [];
   isLoading = false;
   errorMessage = '';
+
+  selectedStatus: CaseStatus | '' = '';
+  currentPage = 0;
+  pageSize = 10;
+  totalPages = 0;
+  totalElements = 0;
 
   private complianceService = inject(ComplianceOfficerService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
   ngOnInit(): void {
-    this.loadDashboardData();
+    this.loadCases();
   }
 
-  loadDashboardData(): void {
+  loadCases(): void {
     this.isLoading = true;
     this.errorMessage = '';
 
-    this.complianceService.getDashboard().subscribe({
-      next: (res) => {
-        this.dashboardStats = res;
-      },
-      error: () => {}
-    });
-
-    this.complianceService.getAssignedCases(undefined, 0, 10).pipe(
+    this.complianceService.getAssignedCases(
+      this.selectedStatus || undefined,
+      this.currentPage,
+      this.pageSize
+    ).pipe(
       finalize(() => {
         this.isLoading = false;
         this.cdr.detectChanges();
       })
     ).subscribe({
       next: (res) => {
-        this.recentCases = res.content || [];
+        this.cases = res.content || [];
+        this.totalPages = res.totalPages || 0;
+        this.totalElements = res.totalElements || 0;
       },
       error: (err) => {
-        this.errorMessage = err.error?.message || 'Failed to load assigned workload.';
+        this.errorMessage = err.error?.message || 'Failed to load assigned cases.';
       }
     });
+  }
+
+  onFilterChange(): void {
+    this.currentPage = 0;
+    this.loadCases();
+  }
+
+  onPageChange(page: number): void {
+    if (page >= 0 && page < this.totalPages) {
+      this.currentPage = page;
+      this.loadCases();
+    }
   }
 
   startInvestigation(caseId: string, event: Event): void {

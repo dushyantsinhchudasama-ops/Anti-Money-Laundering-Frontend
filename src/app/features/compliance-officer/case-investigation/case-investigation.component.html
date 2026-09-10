@@ -1,0 +1,486 @@
+<div class="container-fluid p-0">
+  <!-- Top Navigation Header -->
+  <div class="d-flex justify-content-between align-items-center aml-page-header mb-3">
+    <div class="d-flex align-items-center gap-3">
+      <button class="btn btn-outline-secondary btn-sm" (click)="goBack()">
+        <i class="bi bi-arrow-left me-1"></i> Back to Cases
+      </button>
+      <div>
+        <h4 class="fw-bold text-dark m-0 d-flex align-items-center gap-2">
+          360° Case Workstation: {{ investigationData?.caseSummary?.caseCode || 'Loading Case...' }}
+        </h4>
+        <p class="text-muted small m-0">In-depth AML investigation, customer network analysis, and regulatory reporting</p>
+      </div>
+    </div>
+
+    <!-- Action Header Buttons -->
+    <div *ngIf="investigationData?.caseSummary" class="d-flex align-items-center gap-2">
+      <button *ngIf="investigationData?.caseSummary?.status === 'OPEN'" class="btn btn-warning btn-sm fw-semibold" (click)="startInvestigation()" [disabled]="isSubmitting">
+        <i class="bi bi-play-fill me-1"></i> Start Investigation
+      </button>
+
+      <button *ngIf="!isClosedCase(investigationData?.caseSummary?.status)" class="btn btn-outline-secondary btn-sm" (click)="openCloseModal()">
+        <i class="bi bi-x-circle me-1"></i> Close (False Positive)
+      </button>
+
+      <button *ngIf="!isClosedCase(investigationData?.caseSummary?.status)" class="btn btn-danger btn-sm fw-semibold" (click)="openSarModal()">
+        <i class="bi bi-file-earmark-text me-1"></i> File SAR / STR Report
+      </button>
+
+      <button *ngIf="isSarFiledCase(investigationData?.caseSummary?.status)" class="btn btn-success btn-sm fw-semibold" (click)="downloadPdf()">
+        <i class="bi bi-file-earmark-pdf me-1"></i> Download Filed SAR PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- Messages -->
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show small mb-3" role="alert">
+    <i class="bi bi-check-circle-fill me-1"></i> {{ successMessage }}
+  </div>
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show small mb-3" role="alert">
+    <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ errorMessage }}
+  </div>
+
+  <!-- Loading state -->
+  <div *ngIf="isLoading" class="text-center py-5 text-muted card aml-card shadow-sm mb-3">
+    <div class="spinner-border text-primary mb-2" role="status"></div>
+    <div class="fw-semibold">Loading 360° investigation workspace...</div>
+  </div>
+
+  <div *ngIf="!isLoading && investigationData">
+    <!-- Case Closed Alert Banner -->
+    <div *ngIf="isClosedCase(investigationData.caseSummary?.status)" class="alert alert-secondary d-flex align-items-center justify-content-between p-3 mb-3 shadow-sm" role="alert">
+      <div>
+        <i class="bi bi-lock-fill me-2 fs-5"></i>
+        <strong class="fs-6">This case is CLOSED ({{ (investigationData.caseSummary?.status || '').replace('_', ' ') }}).</strong>
+        <span class="ms-2 text-muted small" *ngIf="investigationData.caseSummary?.falsePositiveRationale">Rationale: {{ investigationData.caseSummary?.falsePositiveRationale }}</span>
+      </div>
+      <button *ngIf="isSarFiledCase(investigationData.caseSummary?.status)" class="btn btn-success btn-sm fw-semibold ms-3" (click)="downloadPdf()">
+        <i class="bi bi-file-earmark-pdf me-1"></i> Download Official PDF
+      </button>
+    </div>
+    <!-- Summary Metadata Banner Card -->
+    <div class="card aml-card shadow-sm p-3 mb-3 bg-white">
+      <div class="row g-3 align-items-center">
+        <div class="col-md-3">
+          <label class="small text-muted fw-semibold text-uppercase">Case Status</label>
+          <div>
+            <span [ngClass]="{
+              'badge bg-primary fs-6': investigationData.caseSummary?.status === 'OPEN',
+              'badge bg-warning text-dark fs-6': investigationData.caseSummary?.status === 'INVESTIGATING',
+              'badge bg-info text-dark fs-6': investigationData.caseSummary?.status === 'PENDING_APPROVAL',
+              'badge bg-secondary fs-6': investigationData.caseSummary?.status === 'CLOSED_NO_ACTION',
+              'badge bg-danger fs-6': investigationData.caseSummary?.status === 'SAR_FILED'
+            }">
+              {{ (investigationData.caseSummary?.status || '').replace('_', ' ') }}
+            </span>
+          </div>
+        </div>
+
+        <div class="col-md-3">
+          <label class="small text-muted fw-semibold text-uppercase">Primary Customer Profile</label>
+          <div class="fw-bold text-dark">{{ investigationData.customerAccountProfile?.accountHolderName || 'N/A' }}</div>
+          <div class="small text-muted font-monospace">{{ investigationData.customerAccountProfile?.accountNumber }} ({{ investigationData.customerAccountProfile?.accountType }})</div>
+        </div>
+
+        <div class="col-md-3">
+          <label class="small text-muted fw-semibold text-uppercase">Customer Risk Rating</label>
+          <div>
+            <span [ngClass]="{
+              'badge bg-danger': investigationData.customerAccountProfile?.riskRating === 'HIGH' || investigationData.customerAccountProfile?.riskRating === 'CRITICAL',
+              'badge bg-warning text-dark': investigationData.customerAccountProfile?.riskRating === 'MEDIUM',
+              'badge bg-success': investigationData.customerAccountProfile?.riskRating === 'LOW'
+            }">
+              <i class="bi bi-shield-exclamation me-1"></i> {{ investigationData.customerAccountProfile?.riskRating || 'MEDIUM' }} RISK
+            </span>
+          </div>
+        </div>
+
+        <div class="col-md-3 text-end">
+          <label class="small text-muted fw-semibold text-uppercase">Assigned Compliance Officer</label>
+          <div class="fw-bold text-dark">{{ investigationData.caseSummary?.assignedToName || 'Unassigned' }}</div>
+          <div class="small text-muted">{{ investigationData.caseSummary?.assignedToEmail }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <ul class="nav nav-tabs aml-nav-tabs mb-3 bg-white px-3 pt-2 rounded shadow-sm">
+      <li class="nav-item">
+        <a class="nav-link cursor-pointer fw-semibold" [class.active]="activeTab === 'overview'" (click)="activeTab = 'overview'">
+          <i class="bi bi-lightning-charge me-1"></i> Triggering Alerts & Transactions
+          <span class="badge bg-danger ms-1">{{ investigationData.triggeringTransactions?.length || 0 }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link cursor-pointer fw-semibold" [class.active]="activeTab === 'profile'" (click)="activeTab = 'profile'">
+          <i class="bi bi-person-bounding-box me-1"></i> Customer Profile & Counterparties
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link cursor-pointer fw-semibold" [class.active]="activeTab === 'history'" (click)="activeTab = 'history'">
+          <i class="bi bi-clock-history me-1"></i> Transaction History
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link cursor-pointer fw-semibold" [class.active]="activeTab === 'notes'" (click)="activeTab = 'notes'">
+          <i class="bi bi-chat-left-text me-1"></i> Case Notes & Audit Timeline
+          <span class="badge bg-secondary ms-1">{{ caseNotes.length }}</span>
+        </a>
+      </li>
+    </ul>
+
+    <!-- TAB 1: Triggering Alerts & Transactions -->
+    <div *ngIf="activeTab === 'overview'">
+      <div class="card aml-card shadow-sm mb-3">
+        <div class="card-header bg-white py-3">
+          <h6 class="fw-bold text-dark m-0">
+            <i class="bi bi-exclamation-octagon text-danger me-2"></i>Triggering Transactions & Rule Parameters
+          </h6>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Txn Code</th>
+                  <th>Rule Triggered</th>
+                  <th>Amount</th>
+                  <th>Direction & Type</th>
+                  <th>Counterparty Details</th>
+                  <th>Txn Timestamp</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let txn of investigationData.triggeringTransactions">
+                  <td class="font-monospace fw-bold text-dark">{{ txn.txnNo }}</td>
+                  <td>
+                    <div class="fw-semibold text-danger">{{ txn.ruleName || 'Rule Execution' }}</div>
+                    <div class="small text-muted font-monospace">{{ txn.ruleCode }} | Severity: {{ txn.alertSeverity }}</div>
+                  </td>
+                  <td class="font-monospace fw-bold fs-6 text-dark">
+                    {{ txn.amount | currency: (txn.currency || 'USD') }}
+                  </td>
+                  <td>
+                    <span class="badge" [class.bg-success]="txn.direction === 'IN'" [class.bg-warning]="txn.direction === 'OUT'" [class.text-dark]="txn.direction === 'OUT'">
+                      {{ txn.direction }}
+                    </span>
+                    <span class="small text-muted ms-1">({{ txn.txnType }})</span>
+                  </td>
+                  <td>
+                    <div class="fw-semibold text-dark">{{ txn.counterpartyName || 'Unknown Counterparty' }}</div>
+                    <div class="small text-muted font-monospace">{{ txn.counterpartyAccountNo }} | {{ txn.counterpartyBank || '-' }} ({{ txn.counterpartyCountryCode || 'IN' }})</div>
+                  </td>
+                  <td class="small text-muted font-monospace">{{ txn.txnTimestamp | date:'medium' }}</td>
+                </tr>
+
+                <tr *ngIf="!investigationData.triggeringTransactions || investigationData.triggeringTransactions.length === 0">
+                  <td colspan="6" class="text-center py-3 text-muted">No specific triggering transactions mapped to this case.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: Customer Profile & Counterparties -->
+    <div *ngIf="activeTab === 'profile'">
+      <div class="row g-3">
+        <!-- Account Profile Details -->
+        <div class="col-md-6">
+          <div class="card aml-card shadow-sm h-100">
+            <div class="card-header bg-white py-3">
+              <h6 class="fw-bold text-dark m-0">
+                <i class="bi bi-person-lines-fill text-primary me-2"></i>Account & Customer Profile
+              </h6>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-6">
+                  <label class="small text-muted fw-semibold">Account Holder Name</label>
+                  <div class="fw-bold text-dark">{{ investigationData.customerAccountProfile?.accountHolderName }}</div>
+                </div>
+                <div class="col-6">
+                  <label class="small text-muted fw-semibold">Account Number</label>
+                  <div class="font-monospace fw-bold text-dark">{{ investigationData.customerAccountProfile?.accountNumber }}</div>
+                </div>
+                <div class="col-6">
+                  <label class="small text-muted fw-semibold">Account Type</label>
+                  <div>{{ investigationData.customerAccountProfile?.accountType }}</div>
+                </div>
+                <div class="col-6">
+                  <label class="small text-muted fw-semibold">Country Code</label>
+                  <div>{{ investigationData.customerAccountProfile?.countryCode || 'IN' }}</div>
+                </div>
+                <div class="col-12 border-top pt-2">
+                  <label class="small text-muted fw-semibold">Bank Name</label>
+                  <div class="fw-semibold text-dark">{{ investigationData.customerAccountProfile?.bankName || 'HDFC Bank' }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Counterparties Summary -->
+        <div class="col-md-6">
+          <div class="card aml-card shadow-sm h-100">
+            <div class="card-header bg-white py-3">
+              <h6 class="fw-bold text-dark m-0">
+                <i class="bi bi-diagram-3 text-info me-2"></i>Top Counterparties Summary
+              </h6>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Counterparty Name</th>
+                      <th>Account No</th>
+                      <th>Txn Count</th>
+                      <th class="text-end">Total Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let cp of investigationData.counterparties">
+                      <td class="fw-semibold text-dark">{{ cp.counterpartyName }}</td>
+                      <td class="font-monospace small text-muted">{{ cp.counterpartyAccountNo || '-' }}</td>
+                      <td class="font-monospace fw-bold text-center">{{ cp.transactionCount }}</td>
+                      <td class="font-monospace text-end fw-bold">{{ cp.totalAmount | currency }}</td>
+                    </tr>
+                    <tr *ngIf="!investigationData.counterparties || investigationData.counterparties.length === 0">
+                      <td colspan="4" class="text-center py-3 text-muted">No counterparties recorded for this customer.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: Customer Transaction History -->
+    <div *ngIf="activeTab === 'history'">
+      <div class="card aml-card shadow-sm mb-3">
+        <div class="card-header bg-white py-3">
+          <h6 class="fw-bold text-dark m-0">
+            <i class="bi bi-card-checklist text-primary me-2"></i>Customer Historical Ingestion Log
+          </h6>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>Txn No</th>
+                  <th>Amount</th>
+                  <th>Direction & Type</th>
+                  <th>Counterparty</th>
+                  <th>Txn Timestamp</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of investigationData.customerTransactionHistory?.content">
+                  <td class="font-monospace fw-bold text-dark">{{ item.txnNo }}</td>
+                  <td class="font-monospace fw-bold">{{ item.amount | currency: (item.currency || 'USD') }}</td>
+                  <td>
+                    <span class="badge" [class.bg-success]="item.direction === 'IN'" [class.bg-warning]="item.direction === 'OUT'" [class.text-dark]="item.direction === 'OUT'">
+                      {{ item.direction }}
+                    </span>
+                    <span class="small text-muted ms-1">({{ item.txnType }})</span>
+                  </td>
+                  <td>{{ item.counterpartyName || '-' }} ({{ item.counterpartyAccountNo || '-' }})</td>
+                  <td class="small text-muted font-monospace">{{ item.txnTimestamp | date:'medium' }}</td>
+                </tr>
+
+                <tr *ngIf="!investigationData.customerTransactionHistory?.content || investigationData.customerTransactionHistory?.content?.length === 0">
+                  <td colspan="5" class="text-center py-3 text-muted">No transaction history found for this account.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: Case Notes & Audit Timeline -->
+    <div *ngIf="activeTab === 'notes'">
+      <div class="card aml-card shadow-sm mb-3">
+        <div class="card-header bg-white py-3">
+          <h6 class="fw-bold text-dark m-0">
+            <i class="bi bi-chat-square-text text-primary me-2"></i>Add Case Investigation Note
+          </h6>
+        </div>
+        <div class="card-body">
+          <form (ngSubmit)="onAddNote()">
+            <div class="row g-3 mb-3">
+              <div class="col-md-4">
+                <label class="form-label small fw-semibold">Note Type</label>
+                <select class="form-select" [(ngModel)]="selectedNoteType" name="selectedNoteType" required>
+                  <option value="OBSERVATION">🔍 OBSERVATION</option>
+                  <option value="EVIDENCE_REFERENCE">📁 EVIDENCE REFERENCE</option>
+                  <option value="DECISION_RATIONALE">⚖️ DECISION RATIONALE</option>
+                </select>
+              </div>
+              <div class="col-md-8">
+                <label class="form-label small fw-semibold">Investigation Note / Rationale</label>
+                <textarea class="form-control" rows="3" [(ngModel)]="newNoteText" name="newNoteText" placeholder="Write investigation findings, observations, or decision rationale..." required></textarea>
+              </div>
+            </div>
+            <div class="text-end">
+              <button type="submit" class="btn btn-primary btn-sm fw-semibold" [disabled]="isSubmitting || !newNoteText.trim()">
+                <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-1"></span>
+                <i class="bi bi-send-fill me-1"></i> Add Case Note
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Notes Timeline Card -->
+      <div class="card aml-card shadow-sm">
+        <div class="card-header bg-white py-3">
+          <h6 class="fw-bold text-dark m-0">
+            <i class="bi bi-journal-richtext text-secondary me-2"></i>Recorded Notes Timeline
+          </h6>
+        </div>
+        <div class="card-body">
+          <div *ngIf="caseNotes.length === 0" class="text-muted small text-center py-3">
+            No case notes recorded yet. Use the form above to post your first observation.
+          </div>
+
+          <div *ngFor="let n of caseNotes" class="p-3 mb-3 bg-light rounded border border-start border-4 border-info">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <div class="d-flex align-items-center gap-2">
+                <span class="badge" [ngClass]="{
+                  'bg-primary': n.noteType === 'OBSERVATION',
+                  'bg-info text-dark': n.noteType === 'EVIDENCE_REFERENCE',
+                  'bg-dark': n.noteType === 'DECISION_RATIONALE'
+                }">{{ (n.noteType || 'OBSERVATION').replace('_', ' ') }}</span>
+                <span class="fw-bold text-dark small">{{ n.authorName }} ({{ n.authorEmail }})</span>
+              </div>
+              <span class="small text-muted font-monospace">{{ n.createdAt | date:'medium' }}</span>
+            </div>
+            <p class="mb-0 text-dark small mt-2">{{ n.content || n.noteText }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- False Positive / Close No Action Modal -->
+  <div *ngIf="showCloseModal" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content aml-card">
+        <div class="modal-header bg-secondary text-white py-2">
+          <h5 class="modal-title fw-bold fs-6">
+            <i class="bi bi-x-circle me-2"></i>Close Case: False Positive (No Action)
+          </h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeCloseModal()"></button>
+        </div>
+        <div class="modal-body">
+          <form (ngSubmit)="onCloseCaseNoAction()">
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">False Positive Justification Rationale</label>
+              <textarea class="form-control" rows="4" [(ngModel)]="closeRationale" name="closeRationale" placeholder="Explain why this activity is legitimate (e.g. verified business volume, payroll run, expected seasonal surge)..." required></textarea>
+            </div>
+            <div class="text-end border-top pt-3">
+              <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="closeCloseModal()">Cancel</button>
+              <button type="submit" class="btn btn-secondary btn-sm fw-semibold" [disabled]="isSubmitting || !closeRationale.trim()">
+                <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-1"></span>
+                Close Case (No Action)
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- File SAR / STR Modal -->
+  <div *ngIf="showSarModal" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content aml-card">
+        <div class="modal-header bg-danger text-white py-2">
+          <h5 class="modal-title fw-bold fs-6">
+            <i class="bi bi-file-earmark-text me-2"></i>Official Regulatory SAR / STR Filing
+          </h5>
+          <button type="button" class="btn-close btn-close-white" (click)="closeSarModal()"></button>
+        </div>
+        <div class="modal-body">
+          <div *ngIf="sarFilingResult" class="alert alert-success">
+            <h6 class="fw-bold"><i class="bi bi-check-circle-fill me-2"></i>Filing Completed Successfully!</h6>
+            <div><strong>Reference Number:</strong> <span class="font-monospace fs-6">{{ sarFilingResult.referenceNumber }}</span></div>
+            <div><strong>Report Type:</strong> {{ sarFilingResult.reportType }}</div>
+            <div><strong>Filed By:</strong> {{ sarFilingResult.filedByEmail }}</div>
+            <div class="mt-3">
+              <button class="btn btn-success btn-sm fw-semibold" (click)="downloadPdf()">
+                <i class="bi bi-file-earmark-pdf me-1"></i> Download Official PDF
+              </button>
+            </div>
+          </div>
+
+          <form *ngIf="!sarFilingResult" (ngSubmit)="onFileSarStr()">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">Report Type</label>
+                <select class="form-select" [(ngModel)]="sarForm.reportType" name="reportType" required>
+                  <option value="SAR">SAR (Suspicious Activity Report)</option>
+                  <option value="STR">STR (Suspicious Transaction Report)</option>
+                </select>
+              </div>
+
+              <div class="col-md-6">
+                <label class="form-label small fw-semibold">FIU Typology Category</label>
+                <select class="form-select" [(ngModel)]="sarForm.typologyCategory" name="typologyCategory" required>
+                  <option value="LAYERING">LAYERING</option>
+                  <option value="STRUCTURING">STRUCTURING</option>
+                  <option value="PEP_TRANSACTION">PEP TRANSACTION</option>
+                  <option value="FRAUD_RELATED_ML">FRAUD RELATED ML</option>
+                  <option value="VELOCITY_CHECK">VELOCITY CHECK</option>
+                  <option value="GEOGRAPHIC_RISK">GEOGRAPHIC RISK</option>
+                  <option value="RAPID_PASS_THROUGH">RAPID PASS THROUGH</option>
+                  <option value="DORMANT_ACCOUNT">DORMANT ACCOUNT</option>
+                  <option value="UTURN_TRANSACTION">U-TURN TRANSACTION</option>
+                  <option value="CIRCULAR_LOOPING">CIRCULAR LOOPING</option>
+                  <option value="OTHER_SUSPICIOUS_ACTIVITY">OTHER SUSPICIOUS ACTIVITY</option>
+                </select>
+              </div>
+
+              <div class="col-12" *ngIf="sarPreview">
+                <label class="form-label small fw-semibold">Target Customer & Account</label>
+                <div class="form-control-plaintext small fw-bold font-monospace text-dark p-2 bg-light rounded border">
+                  {{ sarPreview.primaryAccountHolder }} ({{ sarPreview.primaryAccountNo }}) - Total Alert Amount: {{ sarPreview.totalAlertAmount | currency }}
+                </div>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label small fw-semibold">Description of Suspicious Activity</label>
+                <textarea class="form-control" rows="3" [(ngModel)]="sarForm.descriptionOfActivity" name="descriptionOfActivity" placeholder="Describe the transaction patterns and unusual financial behavior..." required></textarea>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label small fw-semibold">Basis for Suspicion & Regulatory Rationale</label>
+                <textarea class="form-control" rows="3" [(ngModel)]="sarForm.basisForSuspicion" name="basisForSuspicion" placeholder="Detail the AML rule violations, velocity thresholds, or typology red flags..." required></textarea>
+              </div>
+
+              <div class="col-12">
+                <label class="form-label small fw-semibold">Supporting Evidence & Telemetry Information</label>
+                <textarea class="form-control" rows="2" [(ngModel)]="sarForm.supportingEvidence" name="supportingEvidence" placeholder="Reference account statements, transaction IDs, counterparty banks, or IP logs..." required></textarea>
+              </div>
+            </div>
+
+            <div class="text-end border-top pt-3 mt-3">
+              <button type="button" class="btn btn-outline-secondary btn-sm me-2" (click)="closeSarModal()">Cancel</button>
+              <button type="submit" class="btn btn-danger btn-sm fw-semibold" [disabled]="isSubmitting || !sarForm.descriptionOfActivity.trim() || !sarForm.basisForSuspicion.trim() || !sarForm.supportingEvidence.trim()">
+                <span *ngIf="isSubmitting" class="spinner-border spinner-border-sm me-1"></span>
+                Submit Regulatory Filing
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
