@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { LoginRequest, LoginResponse, ResetPasswordRequest } from '../models/auth.model';
 import { User, UserRole } from '../models/user.model';
+import { NotificationService } from './notification.service';
 
 @Injectable({
   providedIn: 'root'
@@ -63,7 +64,10 @@ export class AuthService {
     );
   }
 
+  private notificationService = inject(NotificationService);
+
   logout(): void {
+    this.notificationService.resetState();
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_ROLE_KEY);
     localStorage.removeItem(this.TENANT_CODE_KEY);
