@@ -10,6 +10,123 @@
     </div>
 
     <div class="d-flex align-items-center gap-3">
+      <!-- Notification Bell Dropdown Container -->
+      <div class="position-relative me-2" *ngIf="currentUser">
+        <button
+          type="button"
+          class="btn btn-outline-secondary border-0 position-relative p-2 d-flex align-items-center rounded-circle"
+          (click)="toggleDropdown()"
+          title="Notifications"
+          aria-label="Notifications"
+          [attr.aria-expanded]="isOpenPanel"
+        >
+          <i class="bi bi-bell fs-5 text-dark"></i>
+          <span
+            *ngIf="unreadCount > 0"
+            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger shadow-sm"
+            style="font-size: 0.68rem;"
+          >
+            {{ unreadCount > 99 ? '99+' : unreadCount }}
+          </span>
+        </button>
+
+        <!-- Notification Panel Dropdown -->
+        <div
+          *ngIf="isOpenPanel"
+          class="notification-panel dropdown-menu show p-0 shadow-lg border rounded-3 position-absolute end-0 mt-2"
+          style="width: 360px; max-width: 90vw; z-index: 1050; max-height: 480px; display: flex; flex-direction: column;"
+        >
+          <!-- Panel Header -->
+          <div class="d-flex justify-content-between align-items-center px-3 py-2 bg-light border-bottom rounded-top">
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-bell-fill text-primary"></i>
+              <strong class="text-dark">Notifications</strong>
+              <span *ngIf="unreadCount > 0" class="badge bg-danger ms-1">{{ unreadCount }} unread</span>
+            </div>
+            <button
+              type="button"
+              class="btn btn-sm btn-link text-decoration-none p-0 text-secondary"
+              (click)="loadNotifications()"
+              title="Refresh"
+            >
+              <i class="bi bi-arrow-clockwise fs-6"></i>
+            </button>
+          </div>
+
+          <!-- Panel Content List -->
+          <div class="notification-list overflow-auto flex-grow-1">
+            <!-- Loading State -->
+            <div *ngIf="isLoading" class="text-center py-4 text-muted">
+              <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
+              <span>Loading notifications...</span>
+            </div>
+
+            <!-- Error State -->
+            <div *ngIf="!isLoading && errorMessage" class="p-3 text-center text-danger small">
+              <i class="bi bi-exclamation-circle me-1"></i> {{ errorMessage }}
+            </div>
+
+            <!-- Empty State -->
+            <div *ngIf="!isLoading && !errorMessage && notifications.length === 0" class="text-center py-4 text-muted small">
+              <i class="bi bi-bell-slash fs-3 d-block mb-1 text-secondary opacity-50"></i>
+              No notifications available
+            </div>
+
+            <!-- Notification Items -->
+            <ng-container *ngIf="!isLoading && !errorMessage">
+              <div
+                *ngFor="let notif of notifications"
+                class="notification-item p-3 border-bottom transition-all cursor-pointer"
+                [class.bg-unread]="!notif.isRead"
+                [class.bg-white]="notif.isRead"
+                (click)="onNotificationClick(notif)"
+              >
+                <div class="d-flex justify-content-between align-items-start mb-1">
+                  <div class="d-flex align-items-center gap-2">
+                    <span *ngIf="!notif.isRead" class="unread-dot bg-primary rounded-circle" title="Unread"></span>
+                    <span class="fw-semibold small text-dark">
+                      {{ notif.eventType === 'SAR_STR_FILED' ? 'SAR/STR Report Filed' : (notif.eventType | titlecase) }}
+                    </span>
+                  </div>
+                  <span class="text-muted small" style="font-size: 0.72rem;">
+                    {{ notif.createdAt | date:'short' }}
+                  </span>
+                </div>
+
+                <p class="mb-2 text-secondary small" style="font-size: 0.83rem; line-height: 1.35;">
+                  {{ notif.message }}
+                </p>
+
+                <!-- Action Bar -->
+                <div class="d-flex justify-content-between align-items-center mt-2 pt-1">
+                  <span *ngIf="notif.sarStrId" class="badge bg-light text-primary border" style="font-size: 0.7rem;">
+                    <i class="bi bi-file-earmark-text me-1"></i>View Reference
+                  </span>
+                  <span *ngIf="!notif.sarStrId"></span>
+
+                  <!-- Mark as Read Button -->
+                  <button
+                    *ngIf="!notif.isRead"
+                    type="button"
+                    class="btn btn-outline-primary btn-xs py-0 px-2 rounded"
+                    style="font-size: 0.75rem;"
+                    [disabled]="pendingMarkAsReadIds.has(notif.notificationId)"
+                    (click)="onMarkAsRead(notif, $event)"
+                  >
+                    <span *ngIf="pendingMarkAsReadIds.has(notif.notificationId)" class="spinner-border spinner-border-sm me-1" style="width: 0.65rem; height: 0.65rem;"></span>
+                    {{ pendingMarkAsReadIds.has(notif.notificationId) ? 'Updating...' : 'Mark as Read' }}
+                  </button>
+
+                  <span *ngIf="notif.isRead" class="text-muted small" style="font-size: 0.72rem;">
+                    <i class="bi bi-check-all text-success me-1"></i>Read
+                  </span>
+                </div>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+
       <div class="text-end me-2" *ngIf="currentUser">
         <div class="small fw-semibold text-dark">{{ currentUser.email }}</div>
         <div class="text-muted" style="font-size: 0.75rem;">
