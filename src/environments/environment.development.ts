@@ -50,6 +50,12 @@ export const environment = {
       dashboard: `${API_BASE_URL}/api/v1/compliance/dashboard`,
       cases: `${API_BASE_URL}/api/v1/compliance/cases`,
       alerts: `${API_BASE_URL}/api/v1/compliance/alerts`
+    },
+    notifications: {
+      getAll: `${API_BASE_URL}/api/v1/notifications`,
+      getUnread: `${API_BASE_URL}/api/v1/notifications/unread`,
+      getUnreadCount: `${API_BASE_URL}/api/v1/notifications/unread/count`,
+      markAsRead: (id: string) => `${API_BASE_URL}/api/v1/notifications/${id}/read`
     }
   }
 };
