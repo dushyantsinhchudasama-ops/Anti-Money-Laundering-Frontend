@@ -78,8 +78,8 @@ export class BatchUploadComponent {
           const errCount = errorBody.errors?.length || 0;
           this.errorMessage = `Batch file processing failed with ${errCount} validation error(s). Please fix the highlighted rows below.`;
         } else {
-          this.errorMessage = typeof errorBody === 'string' 
-            ? errorBody 
+          this.errorMessage = typeof errorBody === 'string'
+            ? errorBody
             : (errorBody?.message || errorBody?.error || 'Failed to upload transaction batch.');
           this.lastUploadResponse = null;
         }
@@ -113,7 +113,7 @@ export class BatchUploadComponent {
 
   downloadSampleExcel(): void {
     const headers = "TxnNo,OriginatorAccountNo,OriginatorName,Amount,Currency,TxnType,Direction,CounterpartyName,CounterpartyAccountNo,CounterpartyBank,CounterpartyCountryCode,TxnTimestamp,CountryCode\n";
-    const sampleRows = 
+    const sampleRows =
       "TXN10001,ACC-882190,Aarav Sharma,25000.00,INR,NEFT,IN,Global Trade LLC,CP-99001,HSBC,US,2026-09-09T14:30:00,IN\n" +
       "TXN10002,ACC-882190,Aarav Sharma,1250000.00,INR,UPI,OUT,Self Deposit,CP-00000,HDFC,IN,2026-09-09T15:10:00,IN\n" +
       "TXN10003,ACC-554112,Priya Patel,8500.00,USD,CHEQUE,IN,Tech Offshore Corp,CP-77112,Barclays,GB,2026-09-09T16:05:00,IN\n";
