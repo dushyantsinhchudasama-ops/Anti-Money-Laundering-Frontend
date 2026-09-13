@@ -2,16 +2,12 @@ export type RuleSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
 export type RuleTypology =
   | 'STRUCTURING_SMURFING'
-  | 'LAYERING'
   | 'PEP_EXPOSURE'
   | 'VELOCITY_CHECK'
   | 'ROUND_AMOUNT_FLAGGING'
   | 'GEOGRAPHIC_RISK'
-  | 'FRAUD_RELATED_ML'
   | 'RAPID_PASS_THROUGH'
   | 'DORMANT_ACCOUNT'
-  | 'UTURN_TRANSACTION'
-  | 'CIRCULAR_LOOPING';
 
 export type RuleStatus = 'DRAFT' | 'ACTIVE' | 'DEPRECATED';
 

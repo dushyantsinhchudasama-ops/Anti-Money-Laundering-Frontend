@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -12,7 +12,7 @@ import { AuthService } from '../../../core/services/auth.service';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   email = '';
   password = '';
   tenantCode = '';
@@ -24,6 +24,12 @@ export class LoginComponent {
   private authService = inject(AuthService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
+
+  ngOnInit(): void {
+    if (this.authService.isLoggedIn()) {
+      this.redirectUserBasedOnRole(this.authService.getUserRole());
+    }
+  }
 
   onLogin(): void {
     if (!this.email || !this.password) {
@@ -48,27 +54,18 @@ export class LoginComponent {
     ).subscribe({
       next: (response) => {
         if (response.mustResetPassword) {
-          this.router.navigate(['/reset-password']);
+          this.router.navigate(['/reset-password'], { replaceUrl: true });
           return;
         }
 
-        const role = response.userRole;
-        if (role === 'SYSTEM_ADMIN') {
-          this.router.navigate(['/admin']);
-        } else if (role === 'BANK_ADMIN') {
-          this.router.navigate(['/bank']);
-        } else if (role === 'COMPLIANCE_OFFICER') {
-          this.router.navigate(['/compliance']);
-        } else {
-          this.router.navigate(['/']);
-        }
+        this.redirectUserBasedOnRole(response.userRole);
       },
       error: (error) => {
         if (error.status === 401) {
           this.errorMessage = 'Invalid email or password.';
         } else if (error.status === 428) {
           this.authService.setMustResetPassword(true);
-          this.router.navigate(['/reset-password']);
+          this.router.navigate(['/reset-password'], { replaceUrl: true });
         } else if (error.error?.message) {
           this.errorMessage = error.error.message;
         } else if (error.error?.error) {
@@ -78,5 +75,17 @@ export class LoginComponent {
         }
       }
     });
+  }
+
+  private redirectUserBasedOnRole(role?: string | null): void {
+    if (role === 'SYSTEM_ADMIN') {
+      this.router.navigate(['/admin'], { replaceUrl: true });
+    } else if (role === 'BANK_ADMIN') {
+      this.router.navigate(['/bank'], { replaceUrl: true });
+    } else if (role === 'COMPLIANCE_OFFICER') {
+      this.router.navigate(['/compliance'], { replaceUrl: true });
+    } else {
+      this.router.navigate(['/'], { replaceUrl: true });
+    }
   }
 }

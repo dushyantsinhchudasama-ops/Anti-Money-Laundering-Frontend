@@ -4,7 +4,7 @@
 
 .sidebar {
   width: var(--aml-sidebar-width);
-  min-height: 100vh;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
   background-color: var(--aml-primary) !important;

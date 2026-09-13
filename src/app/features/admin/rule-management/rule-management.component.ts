@@ -72,7 +72,7 @@ export class RuleManagementComponent implements OnInit {
     dormantDays: 180
   };
 
-  
+
   private systemAdminService = inject(SystemAdminService);
   private cdr = inject(ChangeDetectorRef);
 
