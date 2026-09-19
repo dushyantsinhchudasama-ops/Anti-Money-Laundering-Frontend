@@ -104,9 +104,11 @@
                 </span>
               </td>
               <td class="text-end">
-                <button class="btn btn-outline-primary btn-sm" (click)="goToAddBankAdmin(tenant)" title="Add Bank Admin User">
-                  <i class="bi bi-person-plus me-1"></i> Add Bank Admin
-                </button>
+                <div *ngIf="tenant.status === 'ACTIVE'" class="btn-group" role="group">
+                  <button class="btn btn-outline-primary btn-sm" (click)="goToAddBankAdmin(tenant)" title="Add Bank Admin User">
+                    <i class="bi bi-person-plus me-1"></i> Add Bank Admin
+                  </button>
+                </div>
               </td>
             </tr>
           </tbody>
