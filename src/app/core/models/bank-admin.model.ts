@@ -157,6 +157,9 @@ export interface BatchUploadResponse {
   alertsGeneratedCount?: number;
   alertsTriggered?: number;
   uploadedAt?: string;
+  processedAt?: string;
+  uploadedByEmail?: string;
+  uploadedByName?: string;
   errors?: BatchValidationErrorDto[];
 }
 

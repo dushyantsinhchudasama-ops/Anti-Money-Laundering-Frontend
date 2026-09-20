@@ -70,6 +70,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/bank-admin/batch-upload/batch-upload.component').then(m => m.BatchUploadComponent)
       },
       {
+        path: 'batch-history',
+        loadComponent: () => import('./features/bank-admin/batch-history/batch-history.component').then(m => m.BatchHistoryComponent)
+      },
+      {
         path: 'sar-str',
         loadComponent: () => import('./features/bank-admin/sar-str-log/sar-str-log.component').then(m => m.SarStrLogComponent)
       }
