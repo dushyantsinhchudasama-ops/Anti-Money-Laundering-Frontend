@@ -18,6 +18,7 @@ export class BankAdminLayoutComponent {
     { label: 'Alert Monitoring', route: '/bank/alerts' },
     { label: 'Case Tracking', route: '/bank/cases' },
     { label: 'Batch Ingestion', route: '/bank/batches' },
+    { label: 'Batch History', route: '/bank/batch-history' },
     { label: 'SAR / STR Filings', route: '/bank/sar-str' }
   ];
 }
