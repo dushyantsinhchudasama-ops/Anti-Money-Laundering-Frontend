@@ -113,6 +113,11 @@ export class BankAdminService {
     return this.http.post<BatchUploadResponse>(environment.endpoints.batches.upload, formData);
   }
 
+  getBatches(page: number = 0, size: number = 20): Observable<PageResponse<BatchUploadResponse>> {
+    const params = new HttpParams().set('page', page).set('size', size);
+    return this.http.get<PageResponse<BatchUploadResponse>>(environment.endpoints.batches.getAll, { params });
+  }
+
   getBatchDetails(batchId: string): Observable<BatchUploadResponse> {
     return this.http.get<BatchUploadResponse>(environment.endpoints.batches.getDetail(batchId));
   }

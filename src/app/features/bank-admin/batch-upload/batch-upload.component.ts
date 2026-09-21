@@ -5,10 +5,12 @@ import { finalize } from 'rxjs';
 import { BankAdminService } from '../../../core/services/bank-admin.service';
 import { BatchUploadResponse } from '../../../core/models/bank-admin.model';
 
+import { RouterModule } from '@angular/router';
+
 @Component({
   selector: 'app-batch-upload',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './batch-upload.component.html',
   styleUrls: ['./batch-upload.component.css']
 })

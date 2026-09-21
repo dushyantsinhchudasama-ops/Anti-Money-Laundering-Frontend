@@ -44,6 +44,7 @@ export const environment = {
     },
     batches: {
       upload: `${API_BASE_URL}/api/v1/bank/batches/upload`,
+      getAll: `${API_BASE_URL}/api/v1/bank/batches`,
       getDetail: (batchId: string) => `${API_BASE_URL}/api/v1/bank/batches/${batchId}`
     },
     compliance: {
