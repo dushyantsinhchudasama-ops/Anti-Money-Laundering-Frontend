@@ -26,6 +26,7 @@ export class BankDashboardComponent implements OnInit {
   }
 
   fetchOverview(): void {
+    
     this.isLoading = true;
     this.bankAdminService.getAlertStats().subscribe({
       next: (res) => {

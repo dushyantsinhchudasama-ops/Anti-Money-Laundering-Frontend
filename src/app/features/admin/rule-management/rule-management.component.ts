@@ -105,7 +105,10 @@ export class RuleManagementComponent implements OnInit {
         this.cdr.detectChanges();
       })
     ).subscribe({
-      next: (res) => this.rules = res.content || [],
+      next: (res) => {
+        this.rules = res.content || []
+        console.log(this.rules);
+      },
       error: (err) => this.errorMessage = err.error?.message || 'Failed to load rules.'
     });
   }

@@ -32,7 +32,11 @@ export class SarStrLogComponent implements OnInit {
         this.cdr.detectChanges();
       })
     ).subscribe({
-      next: (res) => this.filingLogs = res.content || [],
+      next: (res) =>
+        { 
+          this.filingLogs = res.content || []
+          console.log(this.filingLogs)
+        },
       error: (err) => this.errorMessage = err.error?.message || 'Failed to load SAR/STR filing logs.'
     });
   }

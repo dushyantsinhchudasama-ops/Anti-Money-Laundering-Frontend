@@ -204,7 +204,7 @@ export class CaseInvestigationComponent implements OnInit {
     this.complianceService.getSarStrPreview(this.caseId).subscribe({
       next: (preview) => {
         this.sarPreview = preview;
-        this.sarForm.descriptionOfActivity = preview.suggestedNarrative || `Suspicious activity detected on account ${preview.primaryAccountNo} triggering ${preview.alertCount} alert(s) totaling ${preview.totalAlertAmount} at ${preview.bankName}.`;
+        this.sarForm.descriptionOfActivity = preview.suggestedNarrative || `Suspicious activity detected on account ${preview.primaryAccountNo} triggering ${preview.alertCount} alert(s) totaling ${preview.totalAlertAmount}.`;
         this.sarForm.basisForSuspicion = preview.triggeringRulesSummary || 'Observed transaction patterns violating regulatory threshold and rule engine policies.';
         this.sarForm.supportingEvidence = `Account ${preview.primaryAccountNo} transaction history and rule alert telemetry evidence.`;
         this.cdr.detectChanges();

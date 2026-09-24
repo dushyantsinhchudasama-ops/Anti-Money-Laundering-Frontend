@@ -40,6 +40,10 @@ export const routes: Routes = [
       {
         path: 'create-bank-admin',
         loadComponent: () => import('./features/admin/create-bank-admin/create-bank-admin.component').then(m => m.CreateBankAdminComponent)
+      },
+      {
+        path: 'tenants',
+        loadComponent: () => import('./features/admin/tenant-management/tenant-management.component').then(m => m.TenantManagementComponent)
       }
     ]
   },

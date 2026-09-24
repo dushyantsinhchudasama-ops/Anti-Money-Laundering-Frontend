@@ -71,7 +71,7 @@
                 <option value="LOW">LOW</option>
                 <option value="MEDIUM">MEDIUM</option>
                 <option value="HIGH">HIGH</option>
-                <option value="CRITICAL">CRITICAL</option>
+              <!-- <option value="CRITICAL">CRITICAL</option> -->
               </select>
             </div>
 
@@ -199,23 +199,23 @@
               <input type="text" class="form-control" name="editRuleName" [(ngModel)]="editForm.ruleName" required />
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md-6">
               <label class="form-label small fw-semibold">Default Severity</label>
               <select class="form-select" name="editRuleSeverity" [(ngModel)]="editForm.defaultSeverity">
                 <option value="LOW">LOW</option>
                 <option value="MEDIUM">MEDIUM</option>
                 <option value="HIGH">HIGH</option>
-                <option value="CRITICAL">CRITICAL</option>
+                <!-- <option value="CRITICAL">CRITICAL</option> -->
               </select>
             </div>
 
-            <div class="col-md-3">
+            <!-- <div class="col-md-3">
               <label class="form-label small fw-semibold">Status</label>
               <select class="form-select" name="editIsActive" [(ngModel)]="editForm.isActive">
-                <option [ngValue]="true">ACTIVE</option>
-                <option [ngValue]="false">INACTIVE</option>
+                <option [ngValue]='true'>ACTIVE</option>
+                <option [ngValue]='false'>INACTIVE</option>
               </select>
-            </div>
+            </div> -->
 
             <div class="col-md-12">
               <label class="form-label small fw-semibold">Rule Description</label>
@@ -350,7 +350,7 @@
                 <th>Rule Name</th>
                 <th>Typology</th>
                 <th>Severity</th>
-                <th>Status</th>
+                <!-- <th>Status</th> -->
                 <th>Configured Parameters</th>
                 <th class="text-end">Actions</th>
               </tr>
@@ -384,11 +384,11 @@
                     {{ rule.defaultSeverity }}
                   </span>
                 </td>
-                <td>
-                  <span [class]="rule.isActive ? 'badge bg-success' : 'badge bg-secondary'">
+                <!-- <td>
+                  <span [class]="rule.status === 'ACTIVE' ? 'badge bg-success' : 'badge bg-secondary'">
                     {{ rule.isActive ? 'ACTIVE' : 'INACTIVE' }}
                   </span>
-                </td>
+                </td> -->
                 <td class="small text-muted font-monospace">
                   <div *ngIf="rule.parameters">
                     <span *ngFor="let entry of rule.parameters | keyvalue" class="d-inline-block me-2">

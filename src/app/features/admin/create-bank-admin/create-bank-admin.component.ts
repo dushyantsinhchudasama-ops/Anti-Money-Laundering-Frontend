@@ -16,6 +16,7 @@ import { Tenant } from '../../../core/models/tenant.model';
 export class CreateBankAdminComponent implements OnInit {
   tenants: Tenant[] = [];
   selectedTenantId: string = '';
+  selectedTenant: Tenant | null = null;
 
   userCode: string = '';
   firstName: string = '';
@@ -50,13 +51,14 @@ export class CreateBankAdminComponent implements OnInit {
       next: (data) => {
         this.tenants = data || [];
 
-        // Check if tenantId passed via query parameters
         const paramTenantId = this.route.snapshot.queryParamMap.get('tenantId');
         if (paramTenantId && this.tenants.some(t => t.tenantId === paramTenantId)) {
           this.selectedTenantId = paramTenantId;
-        } else if (this.tenants.length > 0) {
-          this.selectedTenantId = this.tenants[0].tenantId;
+        } else {
+          this.selectedTenantId = '';
         }
+
+        this.selectedTenant = this.tenants.find(t => t.tenantId === this.selectedTenantId) || null;
       },
       error: (err) => {
         this.errorMessage = err.error?.message || 'Failed to load tenant banks.';
@@ -100,7 +102,7 @@ export class CreateBankAdminComponent implements OnInit {
   }
 
   goToBankList(): void {
-    this.router.navigate(['/admin/banks']);
+    this.router.navigate(['/admin/tenants']);
   }
 
   private resetForm(): void {

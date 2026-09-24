@@ -29,16 +29,15 @@
 
     <div class="card-body">
       <form (ngSubmit)="onCreateBankAdmin()">
-        <!-- Tenant Bank Selector -->
         <div class="mb-4">
           <label class="form-label small fw-semibold text-dark">Target Tenant Bank</label>
-          <select class="form-select" name="selectedTenantId" [(ngModel)]="selectedTenantId" required
-            [disabled]="isLoadingTenants" [disabled]="true"> 
-            <option value="">-- Select Bank Tenant --</option>
-            <option *ngFor="let tenant of tenants" [value]="tenant.tenantId">
-              {{ tenant.displayName }} (Code: {{ tenant.tenantCode }})
-            </option>
-          </select>
+          <input
+            type="text"
+            class="form-control"
+            [value]="selectedTenant ? (selectedTenant.displayName + ' (Code: ' + selectedTenant.tenantCode + ')') : ''"
+            readonly
+            [disabled]="true"
+          />
           <div *ngIf="isLoadingTenants" class="form-text small text-muted">Loading active tenant banks...</div>
         </div>
 

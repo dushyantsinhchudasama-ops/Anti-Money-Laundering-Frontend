@@ -27,7 +27,7 @@
             <tr>
               <th>Reference Number</th>
               <th>Case Code</th>
-              <th>Report Type</th>
+              <!-- <th>Report Type</th> -->
               <th>Filing Status</th>
               <th>Filed By</th>
               <th>Filing Timestamp</th>
@@ -50,14 +50,14 @@
             <tr *ngFor="let log of filingLogs">
               <td class="font-monospace fw-bold text-dark">{{ log.referenceNumber || log.sarStrId.substring(0, 8) }}</td>
               <td class="font-monospace text-muted small">{{ log.caseCode || log.caseId.substring(0, 8) }}</td>
-              <td>
+              <!-- <td>
                 <span class="badge bg-secondary font-monospace">{{ log.reportType || 'SAR' }}</span>
-              </td>
+              </td> -->
               <td>
                 <span class="badge bg-success">{{ log.status || 'FILED' }}</span>
               </td>
               <td>{{ log.filedByEmail || 'Compliance Officer' }}</td>
-              <td class="small text-muted">{{ log.filedAt ? (log.filedAt | date:'medium') : '-' }}</td>
+              <td class="medium text-muted">{{ log.submittedAt ? (log.submittedAt | date:'medium') : '-' }}</td>
               <td class="text-end">
                 <button class="btn btn-outline-danger btn-sm" (click)="downloadPdf(log.sarStrId, log.referenceNumber)">
                   <i class="bi bi-file-earmark-pdf me-1"></i> Download PDF
