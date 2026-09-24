@@ -1,0 +1,167 @@
+<div class="container-fluid p-0">
+  <div class="d-flex justify-content-between align-items-center aml-page-header">
+    <div>
+      <h3 class="fw-bold text-dark m-0">Tenant Management</h3>
+      <p class="text-muted small m-0">Search tenants, review bank admin assignments, and change tenant status.</p>
+    </div>
+  </div>
+
+  <div *ngIf="feedbackMessage" class="alert" [ngClass]="feedbackType === 'success' ? 'alert-success' : 'alert-danger'" role="alert">
+    <i class="bi" [ngClass]="feedbackType === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'" class="me-1"></i>
+    {{ feedbackMessage }}
+  </div>
+
+  <div *ngIf="isLoading" class="card aml-card shadow-sm mb-4">
+    <div class="card-body text-center text-muted py-4">
+      <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+      Loading tenants...
+    </div>
+  </div>
+
+  <div *ngIf="!isLoading" class="row g-4">
+    <div class="col-xl-4">
+      <div class="card aml-card shadow-sm h-100">
+        <div class="card-header bg-white border-bottom py-3">
+          <div class="d-flex justify-content-between align-items-center gap-2">
+            <h6 class="fw-bold text-primary m-0">Tenants</h6>
+
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="input-group input-group-sm mb-3">
+            <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control" placeholder="Search tenant" [(ngModel)]="searchTerm" />
+          </div>
+
+          <div class="list-group list-group-flush">
+            <button
+              *ngFor="let tenant of filteredTenants"
+              type="button"
+              class="list-group-item list-group-item-action border-0 px-2 py-3"
+              [class.active]="selectedTenantId === tenant.tenantId"
+              (click)="selectTenantById(tenant.tenantId)"
+            >
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <strong class="small text-dark">{{ tenant.displayName || tenant.tenantName }}</strong>
+                <span class="status-badge" [ngClass]="{
+                  'status-active': tenant.status === 'ACTIVE',
+                  'status-onboarding': tenant.status === 'ONBOARDING',
+                  'status-suspended': tenant.status === 'SUSPENDED',
+                  'status-offboarded': tenant.status === 'OFFBOARDED'
+                }">
+                  {{ tenant.status }}
+                </span>
+              </div>
+              <div class="small text-muted">{{ tenant.tenantCode }}</div>
+            </button>
+
+            <div *ngIf="filteredTenants.length === 0" class="text-muted small py-3 text-center">
+              No tenants match your search.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="selectedTenant" class="col-xl-8">
+      <div class="row g-4">
+        <div class="col-12">
+          <div class="card aml-card shadow-sm">
+            <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+              <h6 class="fw-bold text-primary m-0">Tenant Details</h6>
+              <span class="status-badge" [ngClass]="tenantStatusBadgeClass">
+                {{ tenantStatusLabel }}
+              </span>
+            </div>
+            <div class="card-body">
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <div class="text-muted small">Tenant Code</div>
+                  <div class="fw-bold text-dark">{{ selectedTenant.tenantCode }}</div>
+                </div>
+                <div class="col-md-4">
+                  <div class="text-muted small">Bank Name</div>
+                  <div class="fw-bold text-dark">{{ selectedTenant.tenantName }}</div>
+                </div>
+                <div class="col-md-4">
+                  <div class="text-muted small">Display Name</div>
+                  <div class="fw-bold text-dark">{{ selectedTenant.displayName }}</div>
+                </div>
+                <div class="col-md-6">
+                  <div class="text-muted small">Database Schema</div>
+                  <div class="fw-bold text-dark font-monospace">{{ selectedTenant.schemaName || 'tenant_' + selectedTenant.tenantCode.toLowerCase() }}</div>
+                </div>
+                <div class="col-md-6">
+                  <div class="text-muted small">Created</div>
+                  <div class="fw-bold text-dark">{{ selectedTenant.createdAt | date:'mediumDate' }}</div>
+                </div>
+              </div>
+
+              <div class="d-flex gap-2 mt-4 flex-wrap">
+                <button *ngIf="selectedTenant.status !== 'OFFBOARDED'" type="button" class="btn btn-outline-primary btn-sm" [disabled]="isSaving" (click)="toggleTenantStatus()">
+                  <i class="bi" [ngClass]="selectedTenant.status === 'ACTIVE' || selectedTenant.status === 'ONBOARDING' ? 'bi-pause-circle' : 'bi-play-circle'" class="me-1"></i>
+                  {{ selectedTenant.status === 'ACTIVE' || selectedTenant.status === 'ONBOARDING' ? 'Suspend Tenant' : 'Activate Tenant' }}
+                </button>
+                <button type="button" class="btn btn-outline-danger btn-sm" [disabled]="isSaving || selectedTenant.status === 'OFFBOARDED'" (click)="offboardTenant()">
+                  <i class="bi bi-person-x-fill me-1"></i> Offboard Tenant
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-12">
+          <div class="card aml-card shadow-sm">
+            <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+              <h6 class="fw-bold text-primary m-0">Bank Admins</h6>
+              <button *ngIf="selectedTenant && selectedTenant.status !== 'OFFBOARDED'" type="button" class="btn btn-primary btn-sm" (click)="navigateToAddBankAdmin()">
+                <i class="bi bi-person-plus-fill me-1"></i> Add Bank Admin
+              </button>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Admin</th>
+                      <th>Email</th>
+                      <th>Status</th>
+                      <th class="text-end">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let admin of tenantAdmins">
+                      <td>
+                        <div class="fw-semibold text-dark">{{ admin.firstName }} {{ admin.lastName }}</div>
+                        <div class="small text-muted">{{ admin.userCode }} • {{ admin.employeeId || 'N/A' }}</div>
+                      </td>
+                      <td>{{ admin.email }}</td>
+                      <td>
+                        <span class="badge" [ngClass]="admin.isActive ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'">
+                          {{ admin.isActive ? 'Active' : 'Inactive' }}
+                        </span>
+                      </td>
+                      <td class="text-end">
+                        <div class="btn-group" role="group">
+                          <button type="button" class="btn btn-outline-secondary btn-sm" (click)="toggleTenantAdminStatus(admin)">
+                            {{ admin.isActive ? 'Deactivate' : 'Activate' }}
+                          </button>
+                          <button type="button" class="btn btn-outline-primary btn-sm" (click)="resetBankAdminPassword(admin)">
+                            Reset Password
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr *ngIf="tenantAdmins.length === 0">
+                      <td colspan="4" class="text-center text-muted py-4">No bank admins for this tenant.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8081';
+const API_BASE_URL = 'http://localhost:8080';
 
 export const environment = {
   production: false,
@@ -20,7 +20,13 @@ export const environment = {
       tenants: {
         getAll: `${API_BASE_URL}/api/v1/admin/tenants`,
         onboard: `${API_BASE_URL}/api/v1/admin/tenants`,
-        createBankAdmin: (tenantId: string) => `${API_BASE_URL}/api/v1/admin/tenants/${tenantId}/users`
+        createBankAdmin: (tenantId: string) => `${API_BASE_URL}/api/v1/admin/tenants/${tenantId}/users`,
+        getBankAdmins: (tenantId: string) => `${API_BASE_URL}/api/v1/admin/tenants/${tenantId}/users`,
+        getBankAdminById: (tenantId: string, userId: string) => `${API_BASE_URL}/api/v1/admin/tenants/${tenantId}/users/${userId}`,
+        resetBankAdminPassword: (tenantId: string, userId: string) => `${API_BASE_URL}/api/v1/admin/tenants/${tenantId}/users/${userId}/reset-password`,
+        activateBankAdmin: (tenantId: string, userId: string) => `${API_BASE_URL}/api/v1/admin/tenants/${tenantId}/users/${userId}/activate`,
+        deactivateBankAdmin: (tenantId: string, userId: string) => `${API_BASE_URL}/api/v1/admin/tenants/${tenantId}/users/${userId}/deactivate`,
+        updateStatus: (tenantId: string) => `${API_BASE_URL}/api/v1/system/admin/tenants/${tenantId}/status`
       }
     },
     bankAdmin: {

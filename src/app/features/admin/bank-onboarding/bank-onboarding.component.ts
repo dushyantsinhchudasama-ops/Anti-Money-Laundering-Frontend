@@ -90,6 +90,7 @@ export class BankOnboardingComponent implements OnInit {
         this.loadTenants();
       },
       error: (err) => {
+        console.error('Error onboarding tenant:', err);
         this.errorMessage = err.error?.message || err.error?.error || 'Failed to onboard bank tenant.';
       }
     });

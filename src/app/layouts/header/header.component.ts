@@ -1,5 +1,6 @@
 import { Component, Input, inject, OnInit, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -8,7 +9,7 @@ import { NotificationResponse } from '../../core/models/notification.model';
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css']
 })
@@ -37,9 +38,8 @@ export class HeaderComponent implements OnInit {
   ngOnInit(): void {
     if (this.authService.isLoggedIn()) {
       this.notificationService.fetchUnreadCount().subscribe({
-        error: () => {}
+        error: () => { }
       });
-      // Background pre-fetch notifications so dropdown opens instantly (0ms) on bell click
       this.loadNotifications();
     }
   }
@@ -73,7 +73,7 @@ export class HeaderComponent implements OnInit {
 
     // Refresh unread count concurrently
     this.notificationService.fetchUnreadCount().subscribe({
-      error: () => {}
+      error: () => { }
     });
   }
 
@@ -123,6 +123,20 @@ export class HeaderComponent implements OnInit {
 
   onLogout(): void {
     this.isOpenPanel = false;
-    this.authService.logout();
+    this.authService.logout().subscribe(
+      {
+        next: (next: any) => {
+          this.authService.clearLocalSession();
+          this.router.navigate(
+            ['/login'],
+            { replaceUrl: true }
+          );
+        },
+        error: (error: any) => {
+          console.log(error);
+          alert(error);
+        }
+      }
+    );
   }
 }

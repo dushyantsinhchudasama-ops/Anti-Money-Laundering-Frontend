@@ -1,4 +1,4 @@
-export type TenantStatus = 'ACTIVE' | 'SUSPENDED' | 'ONBOARDING';
+export type TenantStatus = 'ACTIVE' | 'SUSPENDED' | 'ONBOARDING' | 'OFFBOARDED';
 
 export interface Tenant {
   tenantId: string;
@@ -9,6 +9,19 @@ export interface Tenant {
   status: TenantStatus;
   onboardedByAdminId?: string;
   createdAt?: string;
+}
+
+export interface BankAdminSummary {
+  userId: string;
+  userCode: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phoneNumber?: string;
+  employeeId?: string;
+  isActive: boolean;
+  role?: 'BANK_ADMIN';
+  mustResetPassword?: boolean;
 }
 
 export interface CreateTenantRequest {

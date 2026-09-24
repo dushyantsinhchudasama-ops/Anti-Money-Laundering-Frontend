@@ -1,11 +1,12 @@
 import { inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, of } from 'rxjs';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { LoginRequest, LoginResponse, ResetPasswordRequest } from '../models/auth.model';
 import { User, UserRole } from '../models/user.model';
 import { NotificationService } from './notification.service';
+import { jwtDecode } from 'jwt-decode';
 
 @Injectable({
   providedIn: 'root'
@@ -21,6 +22,8 @@ export class AuthService {
 
   private http = inject(HttpClient);
   private router = inject(Router);
+  private notificationService = inject(NotificationService);
+
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
     return this.http.post<LoginResponse>(environment.endpoints.auth.login, credentials).pipe(
@@ -64,18 +67,36 @@ export class AuthService {
     );
   }
 
-  private notificationService = inject(NotificationService);
 
-  logout(): void {
-    this.notificationService.resetState();
+  logout(): Observable<void> {
+    const token = localStorage.getItem(this.TOKEN_KEY);
+    if (!token) {
+      return of(void 0);
+    }
+
+    return this.http.post<void>(
+      environment.endpoints.auth.logout,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+  }
+
+  //after logout clearing the sesison
+  clearLocalSession(): void {
+
     localStorage.removeItem(this.TOKEN_KEY);
     localStorage.removeItem(this.USER_ROLE_KEY);
     localStorage.removeItem(this.TENANT_CODE_KEY);
     localStorage.removeItem(this.USER_EMAIL_KEY);
     localStorage.removeItem(this.MUST_RESET_PASS_KEY);
 
+    this.notificationService.resetState();
+
     this.currentUser.set(null);
-    this.router.navigate(['/login'], { replaceUrl: true });
   }
 
   getToken(): string | null {
@@ -99,8 +120,18 @@ export class AuthService {
   }
 
   getUserRole(): UserRole | null {
-    const role = localStorage.getItem(this.USER_ROLE_KEY);
-    return role ? (role as UserRole) : null;
+    const token = localStorage.getItem(this.TOKEN_KEY);
+    if (!token) return null;
+
+    try {
+      const decodedToken: any = jwtDecode(token);
+      
+      return decodedToken.roles[0].replace("ROLE_", "");
+    } catch (error) {
+      console.error('Invalid Token formate ', error)
+      return null;
+    }
+
   }
 
   getUserEmail(): string | null {
@@ -108,13 +139,25 @@ export class AuthService {
   }
 
   getTenantCode(): string | null {
-    return localStorage.getItem(this.TENANT_CODE_KEY);
+    const token = localStorage.getItem(this.TOKEN_KEY);
+    if (!token) return null;
+
+    try {
+      const decodedToken: any = jwtDecode(token);
+      console.log("hii",decodedToken.tenantCode);
+      return decodedToken.tenantCode
+
+    } catch (error) {
+      console.error('Invalid Token formate ', error)
+      return null;
+    }
   }
 
   private getStoredUser(): User | null {
     const email = localStorage.getItem(this.USER_EMAIL_KEY);
-    const role = localStorage.getItem(this.USER_ROLE_KEY);
-    const tenantCode = localStorage.getItem(this.TENANT_CODE_KEY);
+    // const role = localStorage.getItem(this.USER_ROLE_KEY);
+    const role = this.getUserRole();
+    const tenantCode = this.getTenantCode();
 
     if (email && role) {
       return {

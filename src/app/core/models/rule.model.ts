@@ -9,7 +9,7 @@ export type RuleTypology =
   | 'RAPID_PASS_THROUGH'
   | 'DORMANT_ACCOUNT'
 
-export type RuleStatus = 'DRAFT' | 'ACTIVE' | 'DEPRECATED';
+export type RuleStatus = 'DRAFT' | 'ACTIVE' | 'INACTIVE';
 
 export interface Rule {
   ruleId: string;

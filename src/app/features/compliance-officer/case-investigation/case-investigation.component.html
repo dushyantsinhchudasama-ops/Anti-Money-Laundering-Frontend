@@ -55,9 +55,9 @@
         <strong class="fs-6">This case is CLOSED ({{ (investigationData.caseSummary?.status || '').replace('_', ' ') }}).</strong>
         <span class="ms-2 text-muted small" *ngIf="investigationData.caseSummary?.falsePositiveRationale">Rationale: {{ investigationData.caseSummary?.falsePositiveRationale }}</span>
       </div>
-      <button *ngIf="isSarFiledCase(investigationData.caseSummary?.status)" class="btn btn-success btn-sm fw-semibold ms-3" (click)="downloadPdf()">
+      <!-- <button *ngIf="isSarFiledCase(investigationData.caseSummary?.status)" class="btn btn-success btn-sm fw-semibold ms-3" (click)="downloadPdf()">
         <i class="bi bi-file-earmark-pdf me-1"></i> Download Official PDF
-      </button>
+      </button> -->
     </div>
     <!-- Summary Metadata Banner Card -->
     <div class="card aml-card shadow-sm p-3 mb-3 bg-white">
@@ -246,7 +246,7 @@
                       <td class="fw-semibold text-dark">{{ cp.counterpartyName }}</td>
                       <td class="font-monospace small text-muted">{{ cp.counterpartyAccountNo || '-' }}</td>
                       <td class="font-monospace fw-bold text-center">{{ cp.transactionCount }}</td>
-                      <td class="font-monospace text-end fw-bold">{{ cp.totalAmount | currency }}</td>
+                      <td class="font-monospace text-end fw-bold">{{ cp.totalAmount | currency: 'INR' }}</td>
                     </tr>
                     <tr *ngIf="!investigationData.counterparties || investigationData.counterparties.length === 0">
                       <td colspan="4" class="text-center py-3 text-muted">No counterparties recorded for this customer.</td>
@@ -426,7 +426,7 @@
               <div class="col-md-6">
                 <label class="form-label small fw-semibold">Report Type</label>
                 <select class="form-select" [(ngModel)]="sarForm.reportType" name="reportType" required>
-                  <option value="SAR">SAR (Suspicious Activity Report)</option>
+                  <!-- <option value="SAR">SAR (Suspicious Activity Report)</option> -->
                   <option value="STR">STR (Suspicious Transaction Report)</option>
                 </select>
               </div>
@@ -451,7 +451,7 @@
               <div class="col-12" *ngIf="sarPreview">
                 <label class="form-label small fw-semibold">Target Customer & Account</label>
                 <div class="form-control-plaintext small fw-bold font-monospace text-dark p-2 bg-light rounded border">
-                  {{ sarPreview.primaryAccountHolder }} ({{ sarPreview.primaryAccountNo }}) - Total Alert Amount: {{ sarPreview.totalAlertAmount | currency }}
+                  {{ sarPreview.primaryAccountHolder }} ({{ sarPreview.primaryAccountNo }}) - Total Alert Amount: {{ sarPreview.totalAlertAmount | currency: 'INR' }}
                 </div>
               </div>
 

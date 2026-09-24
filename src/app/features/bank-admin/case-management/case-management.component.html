@@ -61,7 +61,7 @@
               <th>Assigned Officer</th>
               <th>Alert Count</th>
               <th>Created Date</th>
-              <th>Last Updated</th>
+              <!-- <th>Last Updated</th> -->
               <th class="text-end">Actions</th>
             </tr>
           </thead>
@@ -97,7 +97,7 @@
               </td>
               <td class="font-monospace fw-bold text-dark">{{ c.alertCount || 1 }} Alerts</td>
               <td class="small text-muted">{{ c.createdAt | date:'short' }}</td>
-              <td class="small text-muted">{{ c.updatedAt ? (c.updatedAt | date:'short') : '-' }}</td>
+              <!-- <td class="small text-muted">{{ c.updatedAt ? (c.updatedAt | date:'short') : '-' }}</td> -->
               <td class="text-end">
                 <button class="btn btn-outline-info btn-sm me-1" (click)="openDetailModal(c.caseId)">
                   <i class="bi bi-eye me-1"></i> View

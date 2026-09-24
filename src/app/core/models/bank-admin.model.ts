@@ -171,5 +171,5 @@ export interface SarStrResponse {
   reportType?: string;
   status?: string;
   filedByEmail?: string;
-  filedAt?: string;
+  submittedAt?: string;
 }

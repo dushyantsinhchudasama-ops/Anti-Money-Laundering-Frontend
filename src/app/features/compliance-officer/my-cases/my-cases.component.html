@@ -20,10 +20,10 @@
         <select class="form-select" [(ngModel)]="selectedStatus" (change)="onFilterChange()">
           <option value="">-- All Statuses --</option>
           <option value="OPEN">OPEN (Unstarted)</option>
-          <option value="INVESTIGATING">INVESTIGATING (In Progress)</option>
-          <option value="PENDING_APPROVAL">PENDING APPROVAL</option>
+          <!-- <option value="INVESTIGATING">INVESTIGATING (In Progress)</option> -->
+          <!-- <option value="PENDING_APPROVAL">PENDING APPROVAL</option> -->
           <option value="CLOSED_NO_ACTION">CLOSED (NO ACTION / FALSE POSITIVE)</option>
-          <option value="SAR_FILED">SAR / STR FILED</option>
+          <option value="CLOSED_SAR_FILED">STR FILED</option>
         </select>
       </div>
 
@@ -51,11 +51,11 @@
         <table class="table table-hover align-middle mb-0">
           <thead class="table-light">
             <tr>
-              <th>Case Code</th>
+              <th >Case Code</th>
               <th>Status</th>
               <th>Alert Count</th>
               <th>Assigned Date</th>
-              <th>Last Activity</th>
+              <!-- <th>Last Activity</th> -->
               <th class="text-end">Actions</th>
             </tr>
           </thead>
@@ -80,14 +80,14 @@
                   'badge bg-warning text-dark': c.status === 'INVESTIGATING',
                   'badge bg-info text-dark': c.status === 'PENDING_APPROVAL',
                   'badge bg-secondary': c.status === 'CLOSED_NO_ACTION',
-                  'badge bg-danger': c.status === 'SAR_FILED'
+                  'badge bg-danger': c.status === 'CLOSED_SAR_FILED'
                 }">
                   {{ c.status.replace('_', ' ') }}
                 </span>
               </td>
               <td class="font-monospace fw-bold text-dark">{{ c.alertCount || 1 }} Alerts</td>
               <td class="small text-muted">{{ c.createdAt | date:'short' }}</td>
-              <td class="small text-muted">{{ c.updatedAt ? (c.updatedAt | date:'short') : '-' }}</td>
+              <!-- <td class="small text-muted">{{ c.updatedAt ? (c.updatedAt | date:'short') : '-' }}</td> -->
               <td class="text-end" (click)="$event.stopPropagation()">
                 <button *ngIf="c.status === 'OPEN'" class="btn btn-warning btn-sm me-1 fw-semibold" (click)="startInvestigation(c.caseId, $event)">
                   <i class="bi bi-play-fill me-1"></i> Start Investigation

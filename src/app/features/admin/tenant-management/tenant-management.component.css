@@ -1,0 +1,46 @@
+.aml-card {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+}
+
+.aml-page-header {
+  margin-bottom: 1.25rem;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.38rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.71rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.status-active {
+  background: rgba(25, 135, 84, 0.12);
+  color: #198754;
+}
+
+.status-onboarding {
+  background: rgba(13, 110, 253, 0.12);
+  color: #0d6efd;
+}
+
+.status-suspended {
+  background: rgba(255, 193, 7, 0.15);
+  color: #9b6d00;
+}
+
+.status-offboarded {
+  background: rgba(220, 53, 69, 0.12);
+  color: #dc3545;
+}
+
+.list-group-item.active {
+  background: rgba(13, 110, 253, 0.08);
+  border-color: rgba(13, 110, 253, 0.2);
+  color: #0d6efd;
+}

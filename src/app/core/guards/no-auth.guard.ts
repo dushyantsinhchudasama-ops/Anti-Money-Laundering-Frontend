@@ -20,7 +20,15 @@ export const noAuthGuard: CanActivateFn = (route, state) => {
     } else if (role === 'COMPLIANCE_OFFICER') {
       router.navigate(['/compliance'], { replaceUrl: true });
     } else {
-      router.navigate(['/'], { replaceUrl: true });
+      authService.logout().subscribe({
+        next:(msg: any)=>{
+          authService.clearLocalSession();
+          router.navigate(['/'], { replaceUrl: true });
+        },
+        error:(err:any)=>{
+          console.log(err);
+        }
+      });
     }
     return false;
   }

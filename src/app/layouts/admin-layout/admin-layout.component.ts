@@ -16,6 +16,7 @@ export class AdminLayoutComponent {
     { label: 'Overview', route: '/admin' },
     { label: 'Rule Engine', route: '/admin/rules' },
     { label: 'Bank Onboarding', route: '/admin/banks' },
-    { label: 'Add Bank Admin', route: '/admin/create-bank-admin' }
+    { label: 'Tenants', route: '/admin/tenants' },
+    //{ label: 'Add Bank Admin', route: '/admin/create-bank-admin' }
   ];
 }

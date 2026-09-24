@@ -71,7 +71,7 @@
                 <option value="LOW">LOW</option>
                 <option value="MEDIUM">MEDIUM</option>
                 <option value="HIGH">HIGH</option>
-                <option value="CRITICAL">CRITICAL</option>
+              <!-- <option value="CRITICAL">CRITICAL</option> -->
               </select>
             </div>
 
@@ -93,7 +93,7 @@
                   <input type="number" class="form-control" name="windowDays" [(ngModel)]="ruleForm.windowDays" required />
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-semibold">Reporting Threshold ($)</label>
+                  <label class="form-label small fw-semibold">Reporting Threshold (₹)</label>
                   <input type="number" class="form-control" name="reportingThreshold" [(ngModel)]="ruleForm.reportingThreshold" required />
                 </div>
               </div>
@@ -121,7 +121,7 @@
               <!-- PEP_EXPOSURE Parameters -->
               <div *ngIf="ruleForm.typology === 'PEP_EXPOSURE'" class="row g-3">
                 <div class="col-md-12">
-                  <label class="form-label small fw-semibold">Minimum Amount Threshold ($)</label>
+                  <label class="form-label small fw-semibold">Minimum Amount Threshold (₹)</label>
                   <input type="number" class="form-control" name="minAmountThreshold" [(ngModel)]="ruleForm.minAmountThreshold" required />
                 </div>
               </div>
@@ -133,7 +133,7 @@
                   <input type="number" class="form-control" name="windowHours" [(ngModel)]="ruleForm.windowHours" required />
                 </div>
                 <div class="col-md-4">
-                  <label class="form-label small fw-semibold">Minimum Amount Threshold ($)</label>
+                  <label class="form-label small fw-semibold">Minimum Amount Threshold (₹)</label>
                   <input type="number" class="form-control" name="minAmountThreshold" [(ngModel)]="ruleForm.minAmountThreshold" required />
                 </div>
                 <div class="col-md-4">
@@ -145,7 +145,7 @@
               <!-- ROUND_AMOUNT_FLAGGING Parameters -->
               <div *ngIf="ruleForm.typology === 'ROUND_AMOUNT_FLAGGING'" class="row g-3">
                 <div class="col-md-12">
-                  <label class="form-label small fw-semibold">Round Amount Modulo Divisor ($)</label>
+                  <label class="form-label small fw-semibold">Round Amount Modulo Divisor (₹)</label>
                   <input type="number" class="form-control" name="moduloThreshold" [(ngModel)]="ruleForm.moduloThreshold" required />
                 </div>
               </div>
@@ -157,7 +157,7 @@
                   <input type="number" class="form-control" name="dormantDays" [(ngModel)]="ruleForm.dormantDays" required />
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-semibold">Minimum Amount Threshold ($)</label>
+                  <label class="form-label small fw-semibold">Minimum Amount Threshold (₹)</label>
                   <input type="number" class="form-control" name="minAmountThreshold" [(ngModel)]="ruleForm.minAmountThreshold" required />
                 </div>
               </div>
@@ -165,7 +165,7 @@
               <!-- Default Fallback Parameters -->
               <div *ngIf="ruleForm.typology !== 'STRUCTURING_SMURFING' && ruleForm.typology !== 'VELOCITY_CHECK' && ruleForm.typology !== 'GEOGRAPHIC_RISK' && ruleForm.typology !== 'PEP_EXPOSURE' && ruleForm.typology !== 'RAPID_PASS_THROUGH' && ruleForm.typology !== 'ROUND_AMOUNT_FLAGGING' && ruleForm.typology !== 'DORMANT_ACCOUNT'" class="row g-3">
                 <div class="col-md-12">
-                  <label class="form-label small fw-semibold">Minimum Transaction Amount ($)</label>
+                  <label class="form-label small fw-semibold">Minimum Transaction Amount (₹)</label>
                   <input type="number" class="form-control" name="minAmountThreshold" [(ngModel)]="ruleForm.minAmountThreshold" required />
                 </div>
               </div>
@@ -199,23 +199,23 @@
               <input type="text" class="form-control" name="editRuleName" [(ngModel)]="editForm.ruleName" required />
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md-6">
               <label class="form-label small fw-semibold">Default Severity</label>
               <select class="form-select" name="editRuleSeverity" [(ngModel)]="editForm.defaultSeverity">
                 <option value="LOW">LOW</option>
                 <option value="MEDIUM">MEDIUM</option>
                 <option value="HIGH">HIGH</option>
-                <option value="CRITICAL">CRITICAL</option>
+                <!-- <option value="CRITICAL">CRITICAL</option> -->
               </select>
             </div>
 
-            <div class="col-md-3">
+            <!-- <div class="col-md-3">
               <label class="form-label small fw-semibold">Status</label>
               <select class="form-select" name="editIsActive" [(ngModel)]="editForm.isActive">
-                <option [ngValue]="true">ACTIVE</option>
-                <option [ngValue]="false">INACTIVE</option>
+                <option [ngValue]='true'>ACTIVE</option>
+                <option [ngValue]='false'>INACTIVE</option>
               </select>
-            </div>
+            </div> -->
 
             <div class="col-md-12">
               <label class="form-label small fw-semibold">Rule Description</label>
@@ -232,7 +232,7 @@
                   <input type="number" class="form-control" name="editWindowDays" [(ngModel)]="editForm.windowDays" required />
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-semibold">Reporting Threshold ($)</label>
+                  <label class="form-label small fw-semibold">Reporting Threshold (₹)</label>
                   <input type="number" class="form-control" name="editReportingThreshold" [(ngModel)]="editForm.reportingThreshold" required />
                 </div>
               </div>
@@ -257,7 +257,7 @@
 
               <div *ngIf="editingRule.typology === 'PEP_EXPOSURE'" class="row g-3">
                 <div class="col-md-12">
-                  <label class="form-label small fw-semibold">Minimum Amount Threshold ($)</label>
+                  <label class="form-label small fw-semibold">Minimum Amount Threshold (₹)</label>
                   <input type="number" class="form-control" name="editMinAmountThreshold" [(ngModel)]="editForm.minAmountThreshold" required />
                 </div>
               </div>
@@ -268,7 +268,7 @@
                   <input type="number" class="form-control" name="editWindowHours" [(ngModel)]="editForm.windowHours" required />
                 </div>
                 <div class="col-md-4">
-                  <label class="form-label small fw-semibold">Minimum Amount Threshold ($)</label>
+                  <label class="form-label small fw-semibold">Minimum Amount Threshold (₹)</label>
                   <input type="number" class="form-control" name="editMinAmountThreshold" [(ngModel)]="editForm.minAmountThreshold" required />
                 </div>
                 <div class="col-md-4">
@@ -279,7 +279,7 @@
 
               <div *ngIf="editingRule.typology === 'ROUND_AMOUNT_FLAGGING'" class="row g-3">
                 <div class="col-md-12">
-                  <label class="form-label small fw-semibold">Round Amount Modulo Divisor ($)</label>
+                  <label class="form-label small fw-semibold">Round Amount Modulo Divisor (₹)</label>
                   <input type="number" class="form-control" name="editModuloThreshold" [(ngModel)]="editForm.moduloThreshold" required />
                 </div>
               </div>
@@ -290,7 +290,7 @@
                   <input type="number" class="form-control" name="editDormantDays" [(ngModel)]="editForm.dormantDays" required />
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label small fw-semibold">Minimum Amount Threshold ($)</label>
+                  <label class="form-label small fw-semibold">Minimum Amount Threshold (₹)</label>
                   <input type="number" class="form-control" name="editMinAmountThreshold" [(ngModel)]="editForm.minAmountThreshold" required />
                 </div>
               </div>
@@ -350,7 +350,7 @@
                 <th>Rule Name</th>
                 <th>Typology</th>
                 <th>Severity</th>
-                <th>Status</th>
+                <!-- <th>Status</th> -->
                 <th>Configured Parameters</th>
                 <th class="text-end">Actions</th>
               </tr>
@@ -384,11 +384,11 @@
                     {{ rule.defaultSeverity }}
                   </span>
                 </td>
-                <td>
-                  <span [class]="rule.isActive ? 'badge bg-success' : 'badge bg-secondary'">
+                <!-- <td>
+                  <span [class]="rule.status === 'ACTIVE' ? 'badge bg-success' : 'badge bg-secondary'">
                     {{ rule.isActive ? 'ACTIVE' : 'INACTIVE' }}
                   </span>
-                </td>
+                </td> -->
                 <td class="small text-muted font-monospace">
                   <div *ngIf="rule.parameters">
                     <span *ngFor="let entry of rule.parameters | keyvalue" class="d-inline-block me-2">
@@ -400,7 +400,7 @@
                   <button class="btn btn-outline-warning btn-sm me-1" (click)="openEditForm(rule)" title="Edit / Update Rule">
                     <i class="bi bi-pencil me-1"></i> Edit
                   </button>
-                  <button class="btn btn-outline-primary btn-sm" (click)="openAssignModal(rule)" title="Assign Rule to Bank">
+                  <button class="btn btn-outline-primary btn-sm m-2" (click)="openAssignModal(rule)" title="Assign Rule to Bank">
                     <i class="bi bi-link-45deg me-1"></i> Assign
                   </button>
                 </td>

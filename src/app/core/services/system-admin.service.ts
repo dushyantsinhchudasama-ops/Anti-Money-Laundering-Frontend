@@ -15,7 +15,9 @@ import {
   CreateTenantRequest,
   CreateTenantResponse,
   CreateBankAdminRequest,
-  CreateBankAdminResponse
+  CreateBankAdminResponse,
+  BankAdminSummary,
+  TenantStatus
 } from '../models/tenant.model';
 
 export interface PageResponse<T> {
@@ -61,6 +63,25 @@ export class SystemAdminService {
 
   getAllTenants(): Observable<Tenant[]> {
     return this.http.get<Tenant[]>(environment.endpoints.systemAdmin.tenants.getAll);
+  }
+
+  updateTenantStatus(tenantId: string, status: TenantStatus): Observable<Tenant> {
+    return this.http.patch<Tenant>(environment.endpoints.systemAdmin.tenants.updateStatus(tenantId), { status });
+  }
+
+  getBankAdminsForTenant(tenantId: string): Observable<BankAdminSummary[]> {
+    return this.http.get<BankAdminSummary[]>(environment.endpoints.systemAdmin.tenants.getBankAdmins(tenantId));
+  }
+
+  resetBankAdminPassword(tenantId: string, userId: string): Observable<BankAdminSummary> {
+    return this.http.post<BankAdminSummary>(environment.endpoints.systemAdmin.tenants.resetBankAdminPassword(tenantId, userId), {});
+  }
+
+  toggleBankAdminStatus(tenantId: string, userId: string, isActive: boolean): Observable<BankAdminSummary> {
+    const url = isActive
+      ? environment.endpoints.systemAdmin.tenants.deactivateBankAdmin(tenantId, userId)
+      : environment.endpoints.systemAdmin.tenants.activateBankAdmin(tenantId, userId);
+    return this.http.patch<BankAdminSummary>(url, {});
   }
 
   onboardTenant(request: CreateTenantRequest): Observable<CreateTenantResponse> {
